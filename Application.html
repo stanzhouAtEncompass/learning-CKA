@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Section 4: Logging & Monitoring · GitBook</title>
+        <title>Section 5: Application LIfecycle Management · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -57,10 +57,8 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Application.html" />
     
-    
-    <link rel="prev" href="Scheduling.html" />
+    <link rel="prev" href="Logging.html" />
     
 
     </head>
@@ -115,7 +113,7 @@
             
         </li>
     
-        <li class="chapter active" data-level="1.3" data-path="Logging.html">
+        <li class="chapter " data-level="1.3" data-path="Logging.html">
             
                 <a href="Logging.html">
             
@@ -128,7 +126,7 @@
             
         </li>
     
-        <li class="chapter " data-level="1.4" data-path="Application.html">
+        <li class="chapter active" data-level="1.4" data-path="Application.html">
             
                 <a href="Application.html">
             
@@ -171,7 +169,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >Section 4: Logging & Monitoring</a>
+        <a href="." >Section 5: Application LIfecycle Management</a>
     </h1>
 </div>
 
@@ -186,42 +184,56 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="section-4-logging--monitoring">Section 4: Logging &amp; Monitoring</h1>
-<h2 id="monitor">Monitor</h2>
+                                <h1 id="section-5-application-lifecycle-management">Section 5: Application LIfecycle Management</h1>
+<h2 id="rolling-updates-and-rollbacks">Rolling updates and rollbacks</h2>
+<h3 id="rollout-and-versioning">Rollout and versioning</h3>
+<p>Revision 1: nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 
+Revision 2: nginx:1.71 nginx:1.71 nginx:1.71 nginx:1.71 nginx:1.71 nginx:1.71 nginx:1.71 nginx:1.71 </p>
+<p>This helps us keep track of the changes made to our deployment and enables us to roll back to a previous
+version of deployment if necessary.</p>
+<p>Rollout Command: <code>k rollout status deployment/myapp-deployment</code></p>
+<p>check the rollout hisory: <code>k rollout history deployment/myapp-deployment</code></p>
+<p>Deployment Strategy:</p>
 <ul>
-<li>Mertics server<pre><code># for minikube
-minikube addons enable metrics-server
-# others
-git clone https://github.com/kubernetes-incubator/metrics-serve
-k create -f deploy/1.8+/
-</code></pre><h3 id="view">view</h3>
-<pre><code>k top node
-k top pod
-</code></pre></li>
-<li>Prometheus</li>
-<li>Elastic Stack</li>
-<li>Datadog</li>
-<li>dynatrace</li>
+<li>Recreate: destory at once, had application downtime</li>
+<li>RollingUpdate: take down the older version and bring up a newr version one by one, seamless, default deployment strategy</li>
 </ul>
-<h2 id="logs---docker">Logs - Docker</h2>
-<pre><code>docker run -d kodekloud/event-simulator
-docker logs -f ecf
-</code></pre><h2 id="logs---kubernetes">Logs - Kubernetes</h2>
-<pre><code>k create -f event-simulator.yaml
-#event-simulator.yaml
-apiVersion: v1
-kind: Pod
-metadata:
- name: event-simulator-pod
-spec:
- containers:
- - name: event-simulator
-   image: kodekloud/event-simulator
- - name: image-processor
-   image: some-image-processor
+<p><code>kubectl apply -f deployment-definition.yml</code></p>
+<p><code>k set image deployment/myapp-deplpyment nginx=nginx:1.9.1</code></p>
+<p><img src="https://i.imgur.com/g2Z38Nh.png" alt="difference between two deployment strategy"></p>
+<h3 id="upgrades">Upgrades</h3>
+<p>How a deployment performs an upgrade under the hood:
+when a new deployment is created say to deploy five replicas:</p>
+<ol>
+<li>creates a replica set automatically, which in trun creates the number of pods required to meet number of replica.</li>
+<li>creates a new replica set under the hood an starts deploying the containers there at the same time.</li>
+<li>at the same time taking down the pod in the old replica set following a rolling update strategy.</li>
+</ol>
+<h3 id="rollback">Rollback</h3>
+<p><code>k rollout undo deployment/myapp-deployment</code>
+use the command see the difference:
+<code>k get replicasets</code></p>
+<h3 id="summarize-commands">Summarize commands</h3>
+<ul>
+<li>Create: <code>k create -f deployment-foobar.yml</code></li>
+<li>Get: <code>k get deployments</code></li>
+<li>Update: <code>k apply -f deployment-foobar.yml</code> <pre><code>    `k set image deployment/myapp-deployment nginx=nginx:1.9.1`
+</code></pre></li>
+<li>Status: <code>k roolout status deployment/myapp-deployment</code><pre><code>    `k roolout history deployment/myapp-deployment`
+</code></pre></li>
+<li>Rollback: <code>k roolout undo deployment/myapp-deployment</code></li>
+</ul>
+<h2 id="lab">Lab</h2>
+<p>curl-test.sh file</p>
+<pre><code>for i in {1..35}; do
+   kubectl exec --namespace=kube-public curl -- sh -c &apos;test=`wget -qO- -T 2  http://webapp-service.default.svc.cluster.local:8080/info
+ 2&gt;&amp;1` &amp;&amp; echo &quot;$test OK&quot; || echo &quot;Failed&quot;&apos;;
+   echo &quot;&quot;
+done
+</code></pre><p>-
+Upgrade the application by setting the image on the deployment to kodekloud/webapp-color:v2
+<code>k edit deployment frontend</code></p>
 
-k logs -f event-simulator-pod event-simulator
-</code></pre>
                                 
                                 </section>
                             
@@ -248,14 +260,10 @@ k logs -f event-simulator-pod event-simulator
 
             
                 
-                <a href="Scheduling.html" class="navigation navigation-prev " aria-label="Previous page: Section 1-3: Scheduling">
+                <a href="Logging.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Section 4: Logging & Monitoring">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
-                
-                <a href="Application.html" class="navigation navigation-next " aria-label="Next page: Section 5: Application LIfecycle Management">
-                    <i class="fa fa-angle-right"></i>
-                </a>
                 
             
         
@@ -264,7 +272,7 @@ k logs -f event-simulator-pod event-simulator
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Section 4: Logging & Monitoring","level":"1.3","depth":1,"next":{"title":"Section 5: Application LIfecycle Management","level":"1.4","depth":1,"path":"Application.md","ref":"Application.md","articles":[]},"previous":{"title":"Section 1-3: Scheduling","level":"1.2","depth":1,"path":"Scheduling.md","ref":"Scheduling.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Logging.md","mtime":"2021-11-23T06:40:07.004Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-23T12:47:04.843Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Section 5: Application LIfecycle Management","level":"1.4","depth":1,"previous":{"title":"Section 4: Logging & Monitoring","level":"1.3","depth":1,"path":"Logging.md","ref":"Logging.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Application.md","mtime":"2021-11-23T11:46:57.533Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-23T12:47:04.843Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
