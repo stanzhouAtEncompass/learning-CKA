@@ -184,7 +184,7 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="section-5-application-lifecycle-management">Section 5: Application LIfecycle Management</h1>
+                                <h1 id="section-5-application-lifecycle-management">Section 5: Application Lifecycle Management</h1>
 <h2 id="rolling-updates-and-rollbacks">Rolling updates and rollbacks</h2>
 <h3 id="rollout-and-versioning">Rollout and versioning</h3>
 <p>Revision 1: nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 nginx:1.70 
@@ -233,6 +233,322 @@ done
 </code></pre><p>-
 Upgrade the application by setting the image on the deployment to kodekloud/webapp-color:v2
 <code>k edit deployment frontend</code></p>
+<h2 id="configure-applications">Configure Applications</h2>
+<p>Concetps:</p>
+<ul>
+<li>Configuring command and arguments on applications<ul>
+<li>commands in the docker
+<code>docker run ubuntu</code></li>
+</ul>
+</li>
+<li>Configuring environment variables</li>
+<li>Configuring secrets</li>
+</ul>
+<h2 id="commands-and-arguments">Commands and Arguments</h2>
+<pre><code>  docker run --name ubuntu-sleeper ubuntu-sleeper 10
+# pod-definition.yml
+apiVersion: v1
+kind: Pod
+metadata:
+ name: ubuntu-sleeper-pod
+spec:
+ containers:
+   - name: ubuntu-sleeper
+     image: ubuntu-sleeper
+     args: [&quot;10&quot;]
+
+docker run --name ubuntu-sleeper --entrypoint sleep2.0 ubuntu-sleeper 10
+# pod-definition.yml
+apiVersion: v1
+kind: Pod
+metadata:
+ name: ubuntu-sleeper-pod
+spec:
+ containers:
+   - name: ubuntu-sleeper
+     image: ubuntu-sleeper
+     command: [&quot;sleep2.0&quot;]
+     args: [&quot;10&quot;]
+</code></pre><h2 id="configure-env-variables-in-applications">Configure ENV variables in Applications</h2>
+<p><code>docker run -e APP_COLOR=pink simple-webapp-color</code></p>
+<pre><code>pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: simple-webapp-color
+sepc:
+  containers:
+  - name: simple-webapp-color
+    image: simple-webapp-color
+    ports:
+      - containerPort: 8080
+    env:
+      - name: APP_COLOR
+        value: pink
+</code></pre><h3 id="env-value-types">ENV Value Types</h3>
+<pre><code># plain key value
+env:
+  - name: APP_COLOR
+    value: pink
+# ConfigMap
+env:
+  - name: APP_COLOR
+    valueFrom: 
+      configMapKeyRef:
+# Secrets
+env:
+  - name: APP_COLOR
+    valueFrom: 
+      secretKeyRef:
+</code></pre><h3 id="configuring-configmaps">Configuring ConfigMaps</h3>
+<ol>
+<li>Create ConfigMap
+ConfigMap<pre><code>APP_COLOR: blue
+APP_MODE: prod
+</code></pre></li>
+</ol>
+<p>Imperative: </p>
+<ol>
+<li>use from-literal
+<code>k create configmap &lt;config-name&gt; --from-literal=&lt;key&gt;=&lt;value&gt;</code>
+eg.<pre><code>k create configmap \
+app-config --from-literal=APP_COLOR=blue \
+          --from-literal=APP_MOD=prod
+</code></pre></li>
+<li>use from-file
+<code>k create configmap &lt;config-name&gt; --from-file=&lt;path-to-file&gt;</code>
+eg.<pre><code>k create configmap \
+app-config --from-file=app_config.properties
+</code></pre>Declarative: <code>k create -f</code>
+config-map.yaml<pre><code>apiVersion: v1
+kind: ConfigMap
+metadata:
+name: app-config
+data:
+APP_COLOR: blue
+APP_MODE: prod
+</code></pre></li>
+</ol>
+<p><code>k create -f config-map.yaml</code></p>
+<pre><code>#app-confg
+APP_COLOR: blue
+APP_MODE: prod
+
+#mysql-config
+port: 3306
+max_allowed_packet: 128M
+
+# redis-config
+port: 6379
+rdb-compression: yes
+</code></pre><p>View ConfigMaps:</p>
+<pre><code>k get configmaps
+k describe configmaps
+</code></pre><ol>
+<li>Inject into Pod
+pod-definition.yml<pre><code>...
+spec:
+containers:
+- name:
+ envFrom:
+  - configMapRef:
+      name: app-config
+</code></pre>Single env:<pre><code># pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+name: simple-webapp-color
+labels:
+name: simple-webapp-color
+spec:
+containers:
+- name: simple-webapp-color
+image: simple-webapp-color
+ports:
+  - containerPort: 8080
+envFrom:
+  - configMapRef:
+       name: app-config
+# config-map.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+name: app-config
+data:
+APP_COLOR: blue
+APP_MODE: prod
+</code></pre></li>
+</ol>
+<p>Volume</p>
+<pre><code>volumes:
+- name: app-config-volume
+  configMap:
+    name: app-config
+</code></pre><h3 id="k8s-secrets">k8s secrets</h3>
+<p>Step 1.Create secret</p>
+<ol>
+<li>Imperative <code>k create secret generic &lt;secret-name&gt; --from-literal=&lt;key&gt;=&lt;value&gt;</code></li>
+</ol>
+<pre><code> k create secret generic app-secret --from-literal=DB_Host=mysql  \
+                                    --from-literal=DB_User=root \
+                                    --from-literal=DB_Password=password
+
+k create secret generic
+   &lt;secret-name&gt; --from-file=&lt;path-to-file&gt;
+
+k create secret generic \
+   app-secret --from-file=app_secret.properties
+</code></pre><ol>
+<li>Declarative <code>k create -f</code>
+secret-data.yaml<pre><code>apiVersion: v1
+kind: Secret
+metadata:
+name: app-secret
+data:
+DB_Host: mysql
+DB_User: root
+DB_Password: password
+</code></pre>Covnert clear text to hashed txt:<pre><code>echo -n &apos;mysql&apos;|base64
+bXlzcWw=
+</code></pre><strong>View Secrets:</strong><pre><code>k get secrets
+k describe secrets
+k get secret app-secret -o yaml
+</code></pre><strong>Decode</strong> </li>
+</ol>
+<pre><code class="lang-shell">echo -n &apos;bXlzcWw=&apos;| base64 --decode
+</code></pre>
+<p><code>k create -f secret-data.yaml</code>
+Step 2.Inject into pod
+<strong>pod-definition.yaml</strong></p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> v1
+<span class="hljs-attr">kind:</span> Pod
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr"> name:</span> simple-webapp-color
+<span class="hljs-attr"> labels:</span>
+<span class="hljs-attr">   name:</span> simple-webapp-color
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr"> containers:</span>
+<span class="hljs-attr"> - name:</span> simple-webapp-color
+<span class="hljs-attr">   image:</span> simple-webapp-color
+<span class="hljs-attr">   ports:</span>
+<span class="hljs-attr">     - containerPort:</span> <span class="hljs-number">8080</span>
+<span class="hljs-attr">   envFrom:</span>
+<span class="hljs-attr">     - secretRef:</span>
+<span class="hljs-attr">          name:</span> app-secret
+</code></pre>
+<p><strong>secret-data.yaml</strong></p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> v1
+<span class="hljs-attr">kind:</span> Secret
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr"> name:</span> app-secret
+<span class="hljs-attr">data:</span>
+<span class="hljs-attr"> DB_Host:</span> bXlzcWw=
+<span class="hljs-attr"> DB_User:</span> cm9vdA==
+<span class="hljs-attr"> DB_Password:</span> cGFzd3Jk
+</code></pre>
+<h4 id="secrets-in-pods-as-volumes">Secrets in Pods as Volumes</h4>
+<pre><code class="lang-yaml"><span class="hljs-attr">volumes:</span>
+<span class="hljs-attr">- name:</span> app-secret-volume
+<span class="hljs-attr">  secret:</span>
+<span class="hljs-attr">    secretName:</span> app-secret
+</code></pre>
+<p><code>ls /opt/app-secret-volumes</code></p>
+<pre><code class="lang-shell">cat /opt/app-secret-volumes/DB_Password
+password
+</code></pre>
+<h3 id="multi-container-pods">Multi Container PODs</h3>
+<h4 id="create">Create</h4>
+<p><strong>pod-definition.yaml</strong></p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> v1
+<span class="hljs-attr">kind:</span> Pod
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr"> name:</span> simple-webapp
+<span class="hljs-attr"> labels:</span>
+<span class="hljs-attr">   name:</span> simple-webapp
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr"> containers:</span>
+<span class="hljs-attr"> - name:</span> simple-webapp
+<span class="hljs-attr">   image:</span> simple-webapp
+<span class="hljs-attr">   ports:</span>
+<span class="hljs-attr">     - containerPort:</span> <span class="hljs-number">8080</span>
+<span class="hljs-attr"> - name:</span> log-agent
+<span class="hljs-attr">   image:</span> log-agent
+</code></pre>
+<h4 id="lab">lab</h4>
+<p>Q: Create a multi-container pod with 2 containers
+A: <code>k run yellow --image=busybox --restart=Never --dry-run -o yam &gt; pod.yaml</code></p>
+<p><code>k -n elastic-stack get pod,svc</code></p>
+<p>Q: The &apos;app&apos;lication outputs logs to the file /log/app.log.
+View the logs and try to identify the user having issue with Login.
+A: <code>k -n elastic-stack logs app</code></p>
+<p>Q: Edit the pod to add a sidecar container to send logs to ElasticSearch. Mount the logs
+volume to the sidecar container.</p>
+<ul>
+<li>Name: app</li>
+<li>Container Name: sidecar</li>
+<li>Container Image: kodekloud/foobar</li>
+<li>Volume Mount: log-volume</li>
+<li>Mount Path: /var/log/event-simulator/</li>
+<li>Existing Container Name: app</li>
+<li>Existing Container Image: kodekloud/event-simulator
+A: <code>k -n elastic-stack get pod app -o yaml &gt; app.yaml</code>
+<code>k delete pod app -n elastic-stack</code></li>
+</ul>
+<h3 id="multi-container-pods-design-patterns">Multi-container PODs design patterns</h3>
+<p><em>3 common patterns</em>:</p>
+<ul>
+<li>SIDECAR</li>
+<li>ADAPTER</li>
+<li>AMBASSADOR</li>
+</ul>
+<h3 id="initcontainers">InitContainers</h3>
+<p>For example a process that pulls a code or binary from a repository that will be used by the main web application. That is a task that will be run only  one time when the pod is first created. Or a process that waits  for an external service or database to be up before the actual application starts. That&apos;s where <em>initContainers</em> comes in.</p>
+<p>An <strong>initContainer</strong> is configured in a pod like all other containers, except that it is specified insidee a <em>initContainers</em> section, like this:</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> v1
+<span class="hljs-attr">kind:</span> Pod
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> myapp-pod
+<span class="hljs-attr">  labels:</span>
+<span class="hljs-attr">    app:</span> myapp
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr">  containers:</span>
+<span class="hljs-attr">  - name:</span> myapp-container
+<span class="hljs-attr">    image:</span> busybox:<span class="hljs-number">1.28</span>
+<span class="hljs-attr">    command:</span> [<span class="hljs-string">&apos;sh&apos;</span>, <span class="hljs-string">&apos;-c&apos;</span>, <span class="hljs-string">&apos;echo The app is running! &amp;&amp; sleep 3600&apos;</span>]
+<span class="hljs-attr">  initContainers:</span>
+<span class="hljs-attr">  - name:</span> init-myservice
+<span class="hljs-attr">    image:</span> busybox
+<span class="hljs-attr">    command:</span> [<span class="hljs-string">&apos;sh&apos;</span>, <span class="hljs-string">&apos;-c&apos;</span>, <span class="hljs-string">&apos;git clone &lt;some-repository-that-will-be-used-by-application&gt; ; done;&apos;</span>]
+</code></pre>
+<p>When a POD is first created the initContainer is run, and the process in the initContainer must run to a completion before the real container hosting the application starts. 
+You can configure multiple such initContainers as well, like how we did for multi-pod containers. In that case each init container is run one at a time in sequential order.
+If any of the initContainers fail to complete, Kubernetes restarts the Pod repeatedly until the Init Container succeeds.</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> v1
+<span class="hljs-attr">kind:</span> Pod
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> myapp-pod
+<span class="hljs-attr">  labels:</span>
+<span class="hljs-attr">    app:</span> myapp
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr">  containers:</span>
+<span class="hljs-attr">  - name:</span> myapp-container
+<span class="hljs-attr">    image:</span> busybox:<span class="hljs-number">1.28</span>
+<span class="hljs-attr">    command:</span> [<span class="hljs-string">&apos;sh&apos;</span>, <span class="hljs-string">&apos;-c&apos;</span>, <span class="hljs-string">&apos;echo The app is running! &amp;&amp; sleep 3600&apos;</span>]
+<span class="hljs-attr">  initContainers:</span>
+<span class="hljs-attr">  - name:</span> init-myservice
+<span class="hljs-attr">    image:</span> busybox:<span class="hljs-number">1.28</span>
+<span class="hljs-attr">    command:</span> [<span class="hljs-string">&apos;sh&apos;</span>, <span class="hljs-string">&apos;-c&apos;</span>, <span class="hljs-string">&apos;until nslookup myservice; do echo waiting for myservice; sleep 2; done;&apos;</span>]
+<span class="hljs-attr">  - name:</span> init-mydb
+<span class="hljs-attr">    image:</span> busybox:<span class="hljs-number">1.28</span>
+<span class="hljs-attr">    command:</span> [<span class="hljs-string">&apos;sh&apos;</span>, <span class="hljs-string">&apos;-c&apos;</span>, <span class="hljs-string">&apos;until nslookup mydb; do echo waiting for mydb; sleep 2; done;&apos;</span>]
+</code></pre>
+<h3 id="self-healing-applications">Self healing applications</h3>
+<p>k8s supports self-healing applications through ReplicaSets and Replication Controllers.</p>
+<p>check the health of applications: (cover in the ckad course)</p>
+<ul>
+<li>Liveness</li>
+<li>Readiness probes</li>
+</ul>
 
                                 
                                 </section>
@@ -272,7 +588,7 @@ Upgrade the application by setting the image on the deployment to kodekloud/weba
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Section 5: Application LIfecycle Management","level":"1.4","depth":1,"previous":{"title":"Section 4: Logging & Monitoring","level":"1.3","depth":1,"path":"Logging.md","ref":"Logging.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Application.md","mtime":"2021-11-23T11:46:57.533Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-23T12:47:04.843Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Section 5: Application LIfecycle Management","level":"1.4","depth":1,"previous":{"title":"Section 4: Logging & Monitoring","level":"1.3","depth":1,"path":"Logging.md","ref":"Logging.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Application.md","mtime":"2021-12-01T11:51:28.459Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-12-02T10:05:20.593Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
