@@ -1,0 +1,422 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Section 6: Cluster Maintenance · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    
+    <link rel="prev" href="Application.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="Scheduling.html">
+            
+                <a href="Scheduling.html">
+            
+                    
+                    Section 1-3: Scheduling
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="Logging.html">
+            
+                <a href="Logging.html">
+            
+                    
+                    Section 4: Logging & Monitoring
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="Application.html">
+            
+                <a href="Application.html">
+            
+                    
+                    Section 5: Application LIfecycle Management
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.5" data-path="Cluster.html">
+            
+                <a href="Cluster.html">
+            
+                    
+                    Section 6: Cluster Maintenance
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >Section 6: Cluster Maintenance</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="cluster-maintenance">Cluster Maintenance</h1>
+<h2 id="os-upgrades">OS Upgrades</h2>
+<p>The time it waits for a pod to come back online is known as the pod eviction timeout.
+<code>kube-controller-manager --pod-eviction-timeout=5m0s</code>
+After the nod goes offline, the master node waits for up to 5 minutes before considering the
+node dead.
+<code>k drain node-1 --ignore-daemonsets</code>
+<code>k cordon node-1</code> # mark the pod unschedulable 
+<code>k uncordon node-1</code></p>
+<h2 id="software-versions">Software versions</h2>
+<p>The k8s release versions consists of 3 parts.
+<code>v1.11.3</code> Major Minor Patch</p>
+<p>Minor version are released very few months with new features and functionalities
+Patches are relaesed more often with critical bug fixes.
+<img src="https://i.imgur.com/Ml5kJML.png" alt="version"></p>
+<h2 id="cluster-upgrade-process">Cluster upgrade process</h2>
+<ul>
+<li>kube-apiserver: X v1.10</li>
+<li>Controller-manager: X-1 v1.9 or v1.10</li>
+<li>kube-scheduler: X-1, v1.9 or v1.10</li>
+<li>kubelet: X-2, v1.8 or v1.9 or v1.10</li>
+<li><p>kube-proxy: X-2, v1.8 or v1.9 or v1.10</p>
+</li>
+<li><p>kubectl: X+1 &gt; X-1</p>
+</li>
+</ul>
+<p>at anytime k8s support only up to the recent three minor versions, when 1.13 is released, only version 1.13, v1.12 and v1.11 are supported before the relase.
+v1.10 is un-supported.
+<strong>how do we upgrade</strong>: upgrade one minor version at a time, v1.10 to v1.11, then 1.11 to 1.12 and then 1.12 to 1.13.</p>
+<ul>
+<li>if deployed on public cloud: just a few clicks <code>upgrade available</code></li>
+<li>if deployed your cluster from kubeadm, then <pre><code class="lang-shell">k upgrade plan
+k upgrade apply
+</code></pre>
+</li>
+<li>if deployed your cluster from scratch, then you manually upgrade yourself</li>
+</ul>
+<p>Upgrading a cluster involves two major steps:</p>
+<ul>
+<li><ol>
+<li>upgrade master nodes</li>
+</ol>
+</li>
+<li><ol>
+<li>upgrade the worker nodes while the master is being upgraded</li>
+</ol>
+</li>
+</ul>
+<p>Different strategies available to upgrade the worker nodes:
+Strategy-1: upgrade all of them at once, but then your pods are down and users are no longer able to access the applications.
+Once the upgrade is complete, the notes are back up, new pods are scheduled and users can resume access.
+Require downtime.</p>
+<p>Strategy-2: upgrade one node at time. our master upgraded and node waiting to be upgraded, we first upgrade the first node where the
+workloads move to the second and third node and users are so far from there. Once the first node is upgraded and back up with an update, the second node 
+where the worloads move to the first and third node. And finally, the third node where the workloads are shared between the first two,
+until we have all nodes upgraded to a newer version, we then follow the same procedure to upgrade the nodes from 1.11 to 1.12 and then 1.13.</p>
+<p>Strategy-3: add new nodes to the cluster nodes with newer software version. This is especially convenient if you&apos;re on a cloud environment where you can
+easily provision new nodes and decommission old ones, nodes with the newer, softer version can be added to the cluster, move the workload over to the new.
+And remove the old node. Until you finally have all new node with the new software version.</p>
+<h3 id="kubeadm---upgrade">kubeadm - upgrade</h3>
+<p>on master node:</p>
+<pre><code class="lang-shell">apt-get upgrade -y kubeadm=1.12.0-00
+kubeadm upgrade apply v1.12.0
+k get nodes
+apt-get upgrade -y kubelet=1.12.0-00
+systemctl restart kubelet
+k get nodes
+</code></pre>
+<p>on worker node:</p>
+<pre><code class="lang-shell"># move the workload from node1 to other node
+k drain node-1
+apt-get upgrade -y kubeadm=1.12.0-00
+apt-get upgrade -y kubelet=1.12.0-00
+kubeadm upgrade node config --kubelet-version v1.12.0
+systemctl restart kubelet
+k uncordon node-1
+</code></pre>
+<h3 id="lab">Lab</h3>
+<p>Q: What is the latest stable version available for upgrade?
+A: <code>kubeadm upgrade plan</code></p>
+<p>Q: we will be upgrading the master node first. Drain the master node of workloads and mark it Unschedulable.
+A: <code>k drain controlplane --ignore-daemonsets</code></p>
+<p><code>k get deployments.apps</code>
+<code>k version --short</code></p>
+<h2 id="backup-and-restore-methods">Backup and restore methods</h2>
+<h3 id="backup-candiates">Backup candiates</h3>
+<ul>
+<li>Resource configuration<pre><code class="lang-shell">k create namespace new-namespace
+k create secret
+k create configmap
+</code></pre>
+</li>
+<li>ETCD cluster<h3 id="backup">backup</h3>
+build in snashot
+<code>ETCDCTL_API=3 etcdctl snapshot save snapshot.db</code>
+view the status of the backup: <code>ETCDCTL_API=3 etcdctl snapshot status snapshot.db</code><h3 id="restore">restore</h3>
+<code>service kube-api-server stop</code>
+<code>ETCDCTL_API=3 etcdctl snapshot restore snapshot.db --data-dir /var/lib/etcd-from-backup</code>
+Then configure the existing configuration file to use the the new data directory.
+<img src="https://i.imgur.com/jzvv8CF.png" alt="etcd.service"><pre><code class="lang-shell">systemctl daemon-reload
+service etcd restart
+service kube-apiserver start
+</code></pre>
+</li>
+<li>Persistent volumes<h4 id="declarative-approach-is-the-preferred-approach">declarative approach is the preferred approach</h4>
+resource configuration -&gt; Github
+<code>k get all --all-namespaces -o yaml &gt; all-deploy-services.yaml</code>
+Tools:</li>
+<li>Velero</li>
+<li>HeptIO</li>
+</ul>
+<p>If you&apos;re using a managed environment, then at times you may not even have access to the any cluster,
+backup by acquiring the kube api server is probably the better way.</p>
+<h2 id="working-with-etcdctl">Working with ETCDCTL</h2>
+<p>etcdctl is a command line client for etcd.</p>
+<p>In all our Kubernetes Hands-on labs, the ETCD key-value database is deployed as a static pod on the master. The version used is v3.</p>
+<p>To make use of etcdctl for tasks such as back up and restore, make sure that you set the ETCDCTL_API to 3.</p>
+<p>You can do this by exporting the variable ETCDCTL_API prior to using the etcdctl client. This can be done as follows:
+export ETCDCTL_API=3
+On the Master Node:
+<code>export ETCDCTL_API=3</code>
+<code>etcdctl version</code></p>
+<p>To see all the options for a specific sub-command, make use of the -h or --help flag.
+For example, if you want to take a snapshot of etcd, use:
+etcdctl snapshot save -h and keep a note of the mandatory global options.
+Since our ETCD database is TLS-Enabled, the following options are mandatory:
+--cacert                                                verify certificates of TLS-enabled secure servers using this CA bundle
+--cert                                                    identify secure client using this TLS certificate file
+--endpoints=[127.0.0.1:2379]          This is the default as ETCD is running on master node and exposed on localhost 2379.
+--key                                                      identify secure client using this TLS key file</p>
+<p>Similarly use the help option for snapshot restore to see all available options for restoring the backup.
+etcdctl snapshot restore -h
+For a detailed explanation on how to make use of the etcdctl command line tool and work with the -h flags, check out the solution video for the Backup and Restore Lab.</p>
+<h3 id="lab">Lab</h3>
+<p><code>etcdctl snapshot save --help</code>
+<code>k get deployments.apps,svc,pod</code>
+<code>etcdctl snapshot restore --help</code>
+Q: Restore the original state of the cluster using the backup file.
+A:
+<code>etcdctl snapshot restore --help</code>
+<code>ETCDCTL_API=3 etcdctl snapshot restore /opt/snapshot-pre-boot.db --data-dir=/var/lib/etcd-from-backup</code>
+<code>cd /etc/kubernets/manifests/</code>
+<code>vi etcd.yaml</code> update path under hostPath
+check the old etcd was destoryed and recreated by: <code>docker ps -a| grep etcd</code>
+<code>docker logs -f foobar</code></p>
+<h3 id="certification-exam-tip">Certification Exam Tip</h3>
+<p>Here&apos;s a quick tip. In the exam, you won&apos;t know if what you did is correct or not as in the practice tests in this course. You must verify your work yourself. For example, if the question is to create a pod with a specific image, you must run the the <code>kubectl describe pod</code> command to verify the pod is created with the correct name and correct image.</p>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="Application.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Section 5: Application LIfecycle Management">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Section 6: Cluster Maintenance","level":"1.5","depth":1,"previous":{"title":"Section 5: Application LIfecycle Management","level":"1.4","depth":1,"path":"Application.md","ref":"Application.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Cluster.md","mtime":"2021-12-06T05:33:40.517Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-12-06T05:38:53.669Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
