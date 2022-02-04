@@ -320,3 +320,75 @@ Resources names
 tool: open policy agent
 5. AlwaysAllow
 6. AlwaysDeny
+### Cluster roles and role bindings
+Namespaces
+1. namesapaced: pods, replicasets, jobs, deployments, services, secrets, roles, rolebindings, configmaps, PVC
+`k api-resources --namespaced=true`
+2. cluster scoped: nodes, PV, clusterroles, clusterrolebindings, certificatesigningrequests, namespaces
+`k api-resources --namspaced=false`
+#### clusterroles
+Cluster admin
+- Can view nodes
+- Can create nodes
+- Can delete nodes
+Storage admin
+- Can view PVs
+- Can create PVs
+- Can delete PVs
+
+cluster-admin-role.yaml
+``` yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-administrator
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["list","get","create","delete"]
+```
+`k create -f cluster-admin-role.yaml`
+Create a user link to custer role
+cluster-admin-role-binding.yaml
+``` yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-admin-role-binding
+subjects:
+- kind: User
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+- kind: ClusterRole
+  name: cluster-administrator
+  apiGroup: rbac.authorization.k8s.io
+```
+`k create -f cluster-admin-role-binding.yaml`
+
+``` yaml
+#Solution manifest file to create a clusterrole and clusterrolebinding for michelle user:
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: node-admin
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "watch", "list", "create", "delete"]
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: michelle-binding
+subjects:
+- kind: User
+  name: michelle
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: node-admin
+  apiGroup: rbac.authorization.k8s.io
+```
