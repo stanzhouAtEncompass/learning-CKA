@@ -392,3 +392,309 @@ roleRef:
   name: node-admin
   apiGroup: rbac.authorization.k8s.io
 ```
+### Service Accounts
+two types of accounts in k8s:
+1. user account
+used by humans
+- Admin: accessing the cluster to perform administrative tasks
+- Developer: accessing the cluster to deploy applications
+2. service account
+used by machines
+account used by application to interact with k8s cluster
+
+e.g. Prometheus uses a service account to pull the k8s api for performance metrices 
+Jenkins deploy applications on the k8s cluster
+
+create a service account
+`k create serviceaccount dashboard-sa`
+to view the service account: `k get serviceaccount`
+When the service account is created, it also creates a token automatically, the service account token is what must be used by the exteneral application while authenticating to the k8s API. The token is stored as a secret object.
+`k describe serviceaccount dashboard-sa`
+
+#### When a service account is created
+1. craetes the service account object
+2. generates a token for the service account
+3. creates a secret object and stores that token inside the secret object
+4. the secret object is then linked to the service account 
+to view the secret object by `k describe secret dashboard-sa-token-kbbdm`
+[service account](https://i.imgur.com/F9HjCWq.png)
+
+can using curl: `curl https://ipaddress:6443/api -insecure --header "Authorization: Bearer [token content]"`
+
+#### default service account
+A service account named default is automatically created.
+Each namespace has its own default service account whenever a part is created.
+The default SA and its token are automatically mounted to that part as a volume mount.
+
+`k exec -it my-kubernetes-dashboard ls /var/run/secrets/kubernetes.io/serviceaccount`
+The one with the actual token is the file named token.
+
+ps. the default service account is very much restricted. It only has permission to run basic common API queries.
+
+**you cannot edit the service account of an existing part, must delete and recreate the pod**
+
+k8s automatically mounts the default service account if you haven't explicitly specified any. 
+not to mount a service account automatically by setting the `automountServiceAccountToken: false`.
+
+using RBAC
+#pod-reader-role.yaml
+``` yaml
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: pod-reader
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  verbs:
+  - get
+  - watch
+  - list
+```
+
+#dashboard-sa-role-binding.yaml
+``` yaml
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-pods
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: dashboard-sa # Name is case sensitive
+  namespace: default
+roleRef:
+  kind: Role #this must be Role or ClusterRole
+  name: pod-reader # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io
+```
+
+#### Lab notes
+You shouldn't have to copy and paste the token each time. The Dashboard application is programmed to read token from the secret mount location. However currently, the 'default' service account is mounted. Update the deployment to use the newly created ServiceAccount
+
+Edit the deployment to change ServiceAccount from 'default' to 'dashboard-sa'
+
+**Use the serviceAccountName field inside the pod spec.**
+``` yaml
+template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: web-dashboard
+    spec:
+      serviceAccountName: dashboard-sa
+      containers:
+      - image: gcr.io/kodekloud/customimage/my-kubernetes-dashboard
+        imagePullPolicy: Always
+        name: web-dashboard
+        ports:
+        - containerPort: 8080
+          protocol: TCP           
+```
+### Image security
+Private repository
+`docker login private-registry.io`
+`docker run private-registry.io/apps/internal-app`
+
+How do you pass the credentials to the docker on times, on the worker node?
+create a secret object
+`k create secret docker-registry regcred --docker-server= --docker-username= --docker-password= --docker-email=`
+# nginx-pod.yaml
+``` yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+spec:
+  containers:
+  - name: nginx
+    image: private-registory.io/apps/internal-app
+  imagePullSecrets:
+  - name: regcred
+```
+### Security Contexts
+configure the security settings at a container level or at a pod level
+if configured it at a pod level the settings will carry over to all the containers within the pod.
+if configure it at both the pod and the container the settings on the container will override the settings on the pod.
+``` yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-pod
+spec:
+ containers:
+   - name: ubuntu
+     image: ubuntu
+     command: ["sleep", "3600"]
+     securityContext:
+       runAsUser: 1000
+       capabilities:
+          add: ["MAC_ADMIN", "NET_ADMIN"]
+```
+**Capabilities are only supported at the container level and not at the POD level**
+
+Lab:
+What is the user used to execute the sleep process within the ubuntu-sleeper pod?
+`k exec ubuntu-sleeper -- whoami`
+### Network Policies
+When you define ingress and egress remember you're only looking at the direction in which the traffic originated.
+one of the pre-requisite for networking:
+the pods should be able to communicate with each other without having to configure any additional settings like routes.
+
+k8s is configured by default with an "All Allow" rule that allows traffic from any pod to any other pod or services.
+A network policy is another object in the k8s namespace. You link a network policy to one or more pods.
+
+How do you apply or link a network policy to a pod.
+Use the same technique that was used before to link ReplicasSets or Servies to Pods. Labels and Selectors.
+Label the pod and use the same labels on the pod selector field in the network policy. And then build our rule uder policy types specify whether the rule is allow ingress or egress traffic or both.
+
+``` yaml
+labels:
+  role: db
+  
+podSelector:
+  matchLabels:
+    role: db
+# rules
+policyTypes:
+- Ingress
+ingress:
+- from:
+  - podSelector:
+     matchLabels:
+       name: api-pod
+  ports:
+  - protocol: TCP
+    port: 3306
+```
+put it together:
+
+``` yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-policy
+spec:
+  podSelector:
+   matchLabels:
+     role: db
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+       matchLabels:
+         name: api-pod
+    ports:
+    - protocol: TCP
+      port: 3306
+```
+`k create -f policy-definition.yaml`
+Note:
+Solutions that support network policies:
+- Kube-router
+- Calico
+- Romana
+- Weave-network
+Solutions that DO NOT support network policies:
+- Flannel
+### Developing network policies
+do we need ingress or egress here or both?
+always look at this from the DB pod perspective,
+to allow incoming traffic from the API part, so that is incoming=> ingress.
+[network policy](https://i.imgur.com/oJJYURQ.png)
+The API pod makes database queries and the database pod returns the results.
+Do you need a separate rule for the results to go back to the api pod?
+No, once you allow incoming traffic, the response or reply to that traffic is allowed back automatically. **we don't need a separate rule for that**
+Using the namespace selector defining from what namespace traffic is allowed.
+``` yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-policy
+spec:
+  podSelector:
+   matchLabels:
+     role: db
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+         matchLabels:
+           name: api-pod
+      namespaceSelector:
+         matchLabels:
+           name: prod
+    ports:
+    - protocol: TCP
+      port: 3306
+  egress:
+  - to:
+    - ipBlock:
+      cidr: 192.168.5.10/32
+    ports:
+    - portocol: TCP
+      port: 80
+```
+#### configure a network policy to allow traffic originating from certain ip addresses
+IP block: allows you to sepecify a range of IP addresses from which you could allow traffic to hit the database pod.
+[ipBlock](https://i.imgur.com/GjeCrtC.png)
+
+Two separate rules:[separate rules](https://i.imgur.com/Mxh2YUL.png) 
+- means that traffic matching the first rule is allowed, that is from any pod matching the label api-pod in any namespace and traffic matching.
+- the 2nd rule is allowed, which from any pod within the namespace, and that is either from the pod web, along with the backup server as we have the IP block specification as well.
+
+**lab**
+Q:Create a network policy to allow traffic from the Internal application only to the payroll-service and db-service.
+
+Use the spec given on the below. You might want to enable ingress traffic to the pod to test your rules in the UI.
+[task](https://i.imgur.com/OoVu48x.png)
+A: **Note:** We have also allowed Egress traffic to TCP and UDP port. This has been added to ensure that the internal DNS resolution works from the internal pod. Remember: The kube-dns service is exposed on port 53:
+
+``` yaml
+root@controlplane:~# k get svc -n kube-system
+NAME       TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+kube-dns   ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   19m
+root@controlplane:~# cat do.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: internal-policy
+spec:
+  podSelector:
+   matchLabels:
+     name: internal 
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+         matchLabels:
+           name: mysql
+    ports:
+    - protocol: TCP
+      port: 3306
+  - to:
+    - podSelector:
+         matchLabels:
+           name: payroll
+    ports:
+    - protocol: TCP
+      port: 8080
+  - ports:
+    - port: 53
+      protocol: UDP 
+    - port: 53
+      protocol: TCP
+```
+Q: how many network policies do you see in the environment?
+A: `k get netpol` # netpo is short for network policy
+
+`k get pods -l name=payroll` # l specific label
