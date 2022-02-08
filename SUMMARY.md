@@ -6,3 +6,4 @@
 * [Section 5: Application LIfecycle Management](Application.md)
 * [Section 6: Cluster Maintenance](Cluster.md)
 * [Section 7: Security](Security.md)
+* [Section 8: Storage](Storage.md)
