@@ -54,4 +54,13 @@ by default the persistent volume will remain until it is manually deleted by the
        persistentVolumeClaim:
          claimName: myclaim
 ```
-
+## Storage Class
+With storage class, you can define a provisional such as google storage that can automatcially provision storage on google cloud an attach that to pods when a claim is made, that's called dynamic provisioning of volumes.
+# sc-definition.yaml
+``` yaml
+apiVersion: storage.k8s.io/v1
+kind: storageClass
+metadata:
+  name: google-storage
+provisioner: kubernetes.io/gce-pd
+```
