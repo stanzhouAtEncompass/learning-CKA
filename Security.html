@@ -1,0 +1,974 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Section 7: Security · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="Storage.html" />
+    
+    
+    <link rel="prev" href="Cluster.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="Scheduling.html">
+            
+                <a href="Scheduling.html">
+            
+                    
+                    Section 1-3: Scheduling
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="Logging.html">
+            
+                <a href="Logging.html">
+            
+                    
+                    Section 4: Logging & Monitoring
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="Application.html">
+            
+                <a href="Application.html">
+            
+                    
+                    Section 5: Application LIfecycle Management
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="Cluster.html">
+            
+                <a href="Cluster.html">
+            
+                    
+                    Section 6: Cluster Maintenance
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.6" data-path="Security.html">
+            
+                <a href="Security.html">
+            
+                    
+                    Section 7: Security
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" data-path="Storage.html">
+            
+                <a href="Storage.html">
+            
+                    
+                    Section 8: Storage
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8" data-path="Networking.html">
+            
+                <a href="Networking.html">
+            
+                    
+                    Section 9: Networking
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >Section 7: Security</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="security">Security</h1>
+<h2 id="secure-kubernetes">Secure Kubernetes</h2>
+<p>kube-apiserver: the first line of defense, controlling access to the API server itself.</p>
+<h3 id="authentication">Authentication</h3>
+<p>who can access?</p>
+<ul>
+<li>Files - Username and passwords</li>
+<li>Files - Username and tokens</li>
+<li>Certificates</li>
+<li>External authentication providers - LDAP</li>
+<li>Service accounts
+what can they do?</li>
+<li>RBAC authorization</li>
+<li>ABAC authorization</li>
+<li>Node authorization</li>
+<li>Webhook node<h3 id="tls-certificates">TLS certificates</h3>
+All communication with the cluster, between the various components such as the ETCD cluster, kube controller manager,
+scheduler, api server, as well as those running on the worker nodes such as the kubelet and kubeproxy is secured using
+TLS encryption.<h3 id="network-policies">Network policies</h3>
+can restrict acess pod access all other pods within the cluster.<h3 id="accounts">Accounts</h3>
+</li>
+<li>User: managed by API server<ul>
+<li>Admins
+<code>kubectl</code></li>
+<li>Developers
+<code>curl https://kube-server-ip:6443/</code>
+The kube api server authenticates the request before processing it.<h3 id="how-does-the-kube-api-server-authenticate">How does the kube api server authenticate</h3>
+Auth mechanisms:</li>
+</ul>
+</li>
+<li>static password file</li>
+<li>staic token file</li>
+<li>certificates</li>
+<li>identity services<h4 id="basic">Basic</h4>
+``` shell
+user-details.csv
+password123,user1,u0001
+password123,user2,u0002</li>
+</ul>
+<p>kube-apiserver
+kube-apiservicer.services
+ExecStart=...
+...
+--basic-auth-file=user-details.csv</p>
+<h1 id="etckubernetesmainifestskube-apiserveryaml">/etc/kubernetes/mainifests/kube-apiserver.yaml</h1>
+<p>apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  name: kube-apiserver
+  namspace: kube-system
+spec:
+  containers:</p>
+<ul>
+<li>commands:<ul>
+<li>kube-api-server</li>
+<li>--authentication-mode=Node,RBAC</li>
+<li>--advertise-address=172.17.0.107</li>
+<li>--allow-previleged=true</li>
+<li>--enable-admission-plugins=NodeRestriction</li>
+<li>--enable-bootstrap-token-auth=true</li>
+<li>--basic-auth-file=user-details.csv
+image: k8s.gcr.io/kube-apiserver-amd64:v1.11.3
+name: kube-apiserver
+```<h4 id="authenticate-user">authenticate user</h4>
+<code>curl -v -k https://master-node-ip:6443/api/v1/pods -u &quot;user1:password123&quot;</code></li>
+<li>Service Accounts</li>
+</ul>
+</li>
+<li><p>Bots</p>
+<p>CA: certificate authority (CA)
+PKI: public key infrastructre
+Certificate (public key): <em>.crt </em>.pem
+server.crt server.pem client.crt client.pem</p>
+<p>Private key: <em>.key </em>-key.pem
+server.key server-key.pem client.key client-key.pem</p>
+</li>
+</ul>
+<h4 id="tls-in-kubernetes">TLS in Kubernetes</h4>
+<p>CA: ca.crt ca.key</p>
+<p>Server certificates for servers
+Kube-API server   apiserver.crt apiserver.key
+ETCD SERVER etcdserver.crt etcdserver.key
+KUBELET SERVER kubelet.crt kubelet.key</p>
+<p>Client certificates for clients
+admin.crt admin.key  admin
+scheduler.crt scheduler.key KUBE-SCHEDULER
+controller-manager.crt controller-manager.key  KUBE-CONTROLLER-MANAGER
+kube-proxy.crt kube-proxy.key  KUBE-PROXY
+apiserver.crt apiserver.key  KUBE-API SERVER
+<a href="https://i.imgur.com/d9bTo3j.png" title="crt" target="_blank">diagram</a>  </p>
+<h4 id="certificate-creation">certificate creation</h4>
+<p>Certificate authority (CA)</p>
+<ol>
+<li>Generate keys ca.key
+<code>openssl genrsa -out ca.key 2048</code></li>
+<li>Certificate signing request ca.csr
+<code>openssl req -new -key ca.key -subj &quot;/CN=KUBERNETES-CA&quot; -out ca.csr</code></li>
+</ol>
+<p>kube api server
+<code>openssl req -new -key apiserver.key -subj &quot;/CN=kube-apiserver&quot; -out apiserver.csr</code></p>
+<p>openssl.cnf</p>
+<pre><code class="lang-shell">[req]
+req_extensions = v3_request
+distinguished_name = req_distinguished_name
+[ v3_req ]
+baseConstraints = CA:FALSE
+keyUsage = nonRepudiation,
+subjectAltName = @atl_names
+[atl_names]
+DNS.1 = kubernetes
+DNS.2 = kubernetes.default
+DNS.3 = kubernetes.default.svc
+DNS.4 = kubernetes.default.svc.cluster.local
+IP.1 = 10.96.0.1
+IP.2 = 172.17.0.87
+</code></pre>
+<h4 id="view-certificate-details">View certificate details</h4>
+<p><code>cat /etc/kubernetes/mainifests/kube-apiserver.yaml</code>
+decode the cert for details:
+<code>openssl x509 -in /etc/kubernetes/pki/apiserver.cert -txt -noout</code>
+check for Subject.</p>
+<p><a href="https://i.imgur.com/G4iHeDv.png" title="kubeadm" target="_blank">kubeadm</a></p>
+<h5 id="inspect-service-logs">Inspect service logs</h5>
+<p><code>journalctl -u etcd.service -l</code></p>
+<h5 id="view-logs">View logs</h5>
+<p><code>kubectl logs etcd-master</code>
+<code>docker ps -a</code>
+<code>docker log 87fc</code></p>
+<h3 id="kubeconfig">kubeconfig</h3>
+<p><code>kubectl get pods --kubeconfig config</code>
+Lookin into the path $HOME/.kube/config</p>
+<pre><code class="lang-shell">#config file content
+--server my-kube-playground:64443
+--client-key admin.key
+--client-certificate admin.crt
+--certificate-authority ca.crt
+</code></pre>
+<h5 id="kubeconfig-file">kubeconfig file</h5>
+<p>Clusters:</p>
+<ul>
+<li>Development</li>
+<li>Production</li>
+<li>Google</li>
+<li>MyKubePlayground
+Contexts:</li>
+<li>Admin@Production</li>
+<li>Dev@Google</li>
+<li>MyKubeAdmin@MyKubePlayground
+Users:</li>
+<li>Admin</li>
+<li>Dev User</li>
+<li>Prod User</li>
+<li>MyKubeAdmin</li>
+</ul>
+<pre><code class="lang-fish">apiVersion: v1
+kind: Config
+
+current-context: dev-user@google
+
+clusters:
+- name: my-kube-playground
+  cluster:
+    certficate-authority: ca.crt
+    server: https://my-kube-playground:6443
+- name: development
+- name: production
+- name: google
+
+contexts:
+- name: my-kube-admin@my-kube-playground
+  context:
+    cluster: my-kube-playground
+    user: my-kube-admin
+- name: dev-user@google
+- name: prod-user@production
+
+
+users:
+- name: my-kube-admin
+  user:
+    client-certificate: admin.crt
+    client-key: admin.key
+- name: admin
+- name: dev-user
+- name: prod-user
+</code></pre>
+<p>view context by: </p>
+<pre><code class="lang-shell">kubectl config view
+k config view --kubeconfig=my-custom-config
+k config use-context prod-user@production
+k config --kubeconfig=/root/my-kube-config use-context foobar
+# check by
+k config --kubeconfig=/root/my-kube-config current-context
+k config -h #help
+</code></pre>
+<h4 id="namespaces">Namespaces</h4>
+<p>automatically switch</p>
+<h4 id="certificates-in-kubeconfig">Certificates in kubeconfig</h4>
+<p>two ways:</p>
+<ol>
+<li>use the cert file</li>
+</ol>
+<pre><code class="lang-shell">apiVersion: v1
+kind: Config
+
+clusters:
+- name: production
+  cluster:
+    certficate-authority: /etc/kubernetes/pki/ca.crt
+</code></pre>
+<p>ca.crt file:
+-----BEGIN CET....
+-----END CET...</p>
+<ol>
+<li>use content:</li>
+</ol>
+<pre><code class="lang-shell">apiVersion: v1
+kind: Config
+
+clusters:
+- name: production
+  cluster:
+    certficate-authority-data:
+     # convert the ca.crt file by: cat ca.crt|base64
+     # if want to decode by: echo &quot;LS0...bnj&quot;| base64 --decode
+</code></pre>
+<h4 id="api-groups">API Groups</h4>
+<p>/metrics /healthz /version /api(core) /apis(named) /logs</p>
+<h5 id="core">core</h5>
+<p>/api
+/v1
+namespaces pods pr events endpoints nodes bindings PV PVC configmaps secrets services</p>
+<h5 id="named">named</h5>
+<p>/apis 
+/apps -&gt; /v1 -&gt; Resources: /deployments /replicasets /statefulsets
+Vebs: list, get, create, delete, update, watch
+<code>curl http://localhost:6443 -k</code>
+<code>curl http://localhost:6443/apis -k|grep &quot;name&quot;</code>
+/extensions
+/networking.k8s/io -&gt; /v1 -&gt; /networkpolicies
+/stoarge.k8s.io
+/authentication.k8s.io
+/certificates.k8s.io-&gt; /v1 -&gt; /certificatesigningrequests</p>
+<p>peope-&gt;kubectl proxy-&gt;kube apiserver
+<code>kubectl proxy</code>
+<code>curl http://localhost:8001 -k</code>
+kube proxy not = kubectl proxy</p>
+<h3 id="authorization">Authorization</h3>
+<h4 id="mechanisms">Mechanisms</h4>
+<ol>
+<li>Node
+kubelet access the kube apiVersion</li>
+<li>Read<ul>
+<li>Services</li>
+<li>Endpoints</li>
+<li>Nodes</li>
+<li>Pods</li>
+</ul>
+</li>
+<li>Write<ul>
+<li>Node status</li>
+<li>Pod status</li>
+<li>events
+Node authorizer</li>
+</ul>
+</li>
+<li>ABAC
+dev-user</li>
+<li>can view PODs</li>
+<li>can create PODs</li>
+<li>Can delte PODs
+<code>{&quot;kind&quot;:&quot;Policy&quot;, &quot;spec&quot;: {&quot;user&quot;: &quot;dev-user&quot;, &quot;namespace&quot;: &quot;*&quot;, &quot;resource&quot;: &quot;pods&quot;, &quot;apiGroup&quot;:&quot;**&quot;}}</code></li>
+<li>RBAC
+<a href="https://i.imgur.com/s7ZTcP5.png" target="_blank">RBAC</a>
+developer-role.yaml
+``` yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+name: developer
+rules:</li>
+<li>apiGroups: [&quot;&quot;]
+resources: [&quot;pods&quot;]
+verbs: [&quot;list&quot;,&quot;get&quot;,&quot;create&quot;,&quot;update&quot;,&quot;delete&quot;]</li>
+<li>apiGroups: [&quot;&quot;]
+resources: [&quot;ConfigMap&quot;]
+verbs: [&quot;create&quot;]
+<code>``
+create a role by</code>kubectl create -f developer-role.yaml<code>devuser-developer-binding.yaml
+[role-binding](https://i.imgur.com/Vhb7lld.png)
+View RBAC</code>k get roles<code>`k get rolebindings</code>
+<code>k describe role developer</code>
+<code>k describe rolebinding devuser-developer-binding</code>
+Edit RBAC
+<code>k edit role developer -n blue</code>
+Check Access
+<code>k auth can-i create deployments</code>
+<code>k auth can-i delete nodes</code>
+<code>k auth can-i create deployments --as dev-user</code>
+<code>k auth can-i create pods --as dev-user</code>
+<code>k auth can-i create pods --as dev-user --namespace test</code>
+Resources names
+<a href="https://i.imgur.com/NoO7wj8.png" target="_blank">resources names</a></li>
+</ol>
+<ol>
+<li>Webhook
+tool: open policy agent</li>
+<li>AlwaysAllow</li>
+<li>AlwaysDeny<h3 id="cluster-roles-and-role-bindings">Cluster roles and role bindings</h3>
+Namespaces</li>
+<li>namesapaced: pods, replicasets, jobs, deployments, services, secrets, roles, rolebindings, configmaps, PVC
+<code>k api-resources --namespaced=true</code></li>
+<li>cluster scoped: nodes, PV, clusterroles, clusterrolebindings, certificatesigningrequests, namespaces
+<code>k api-resources --namspaced=false</code><h4 id="clusterroles">clusterroles</h4>
+Cluster admin</li>
+<li>Can view nodes</li>
+<li>Can create nodes</li>
+<li>Can delete nodes
+Storage admin</li>
+<li>Can view PVs</li>
+<li>Can create PVs</li>
+<li>Can delete PVs</li>
+</ol>
+<p>cluster-admin-role.yaml</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> rbac.authorization.k8s.io/v1
+<span class="hljs-attr">kind:</span> ClusterRole
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> cluster-administrator
+<span class="hljs-attr">rules:</span>
+<span class="hljs-attr">- apiGroups:</span> [<span class="hljs-string">&quot;&quot;</span>]
+<span class="hljs-attr">  resources:</span> [<span class="hljs-string">&quot;nodes&quot;</span>]
+<span class="hljs-attr">  verbs:</span> [<span class="hljs-string">&quot;list&quot;</span>,<span class="hljs-string">&quot;get&quot;</span>,<span class="hljs-string">&quot;create&quot;</span>,<span class="hljs-string">&quot;delete&quot;</span>]
+</code></pre>
+<p><code>k create -f cluster-admin-role.yaml</code>
+Create a user link to custer role
+cluster-admin-role-binding.yaml</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> rbac.authorization.k8s.io/v1
+<span class="hljs-attr">kind:</span> ClusterRoleBinding
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> cluster-admin-role-binding
+<span class="hljs-attr">subjects:</span>
+<span class="hljs-attr">- kind:</span> User
+<span class="hljs-attr">  name:</span> cluster-admin
+<span class="hljs-attr">  apiGroup:</span> rbac.authorization.k8s.io
+<span class="hljs-attr">roleRef:</span>
+<span class="hljs-attr">- kind:</span> ClusterRole
+<span class="hljs-attr">  name:</span> cluster-administrator
+<span class="hljs-attr">  apiGroup:</span> rbac.authorization.k8s.io
+</code></pre>
+<p><code>k create -f cluster-admin-role-binding.yaml</code></p>
+<pre><code class="lang-yaml"><span class="hljs-comment">#Solution manifest file to create a clusterrole and clusterrolebinding for michelle user:</span>
+<span class="hljs-meta">---</span>
+<span class="hljs-attr">kind:</span> ClusterRole
+<span class="hljs-attr">apiVersion:</span> rbac.authorization.k8s.io/v1
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> node-admin
+<span class="hljs-attr">rules:</span>
+<span class="hljs-attr">- apiGroups:</span> [<span class="hljs-string">&quot;&quot;</span>]
+<span class="hljs-attr">  resources:</span> [<span class="hljs-string">&quot;nodes&quot;</span>]
+<span class="hljs-attr">  verbs:</span> [<span class="hljs-string">&quot;get&quot;</span>, <span class="hljs-string">&quot;watch&quot;</span>, <span class="hljs-string">&quot;list&quot;</span>, <span class="hljs-string">&quot;create&quot;</span>, <span class="hljs-string">&quot;delete&quot;</span>]
+
+<span class="hljs-meta">---</span>
+<span class="hljs-attr">kind:</span> ClusterRoleBinding
+<span class="hljs-attr">apiVersion:</span> rbac.authorization.k8s.io/v1
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> michelle-binding
+<span class="hljs-attr">subjects:</span>
+<span class="hljs-attr">- kind:</span> User
+<span class="hljs-attr">  name:</span> michelle
+<span class="hljs-attr">  apiGroup:</span> rbac.authorization.k8s.io
+<span class="hljs-attr">roleRef:</span>
+<span class="hljs-attr">  kind:</span> ClusterRole
+<span class="hljs-attr">  name:</span> node-admin
+<span class="hljs-attr">  apiGroup:</span> rbac.authorization.k8s.io
+</code></pre>
+<h3 id="service-accounts">Service Accounts</h3>
+<p>two types of accounts in k8s:</p>
+<ol>
+<li>user account
+used by humans</li>
+<li>Admin: accessing the cluster to perform administrative tasks</li>
+<li>Developer: accessing the cluster to deploy applications</li>
+<li>service account
+used by machines
+account used by application to interact with k8s cluster</li>
+</ol>
+<p>e.g. Prometheus uses a service account to pull the k8s api for performance metrices 
+Jenkins deploy applications on the k8s cluster</p>
+<p>create a service account
+<code>k create serviceaccount dashboard-sa</code>
+to view the service account: <code>k get serviceaccount</code>
+When the service account is created, it also creates a token automatically, the service account token is what must be used by the exteneral application while authenticating to the k8s API. The token is stored as a secret object.
+<code>k describe serviceaccount dashboard-sa</code></p>
+<h4 id="when-a-service-account-is-created">When a service account is created</h4>
+<ol>
+<li>craetes the service account object</li>
+<li>generates a token for the service account</li>
+<li>creates a secret object and stores that token inside the secret object</li>
+<li>the secret object is then linked to the service account 
+to view the secret object by <code>k describe secret dashboard-sa-token-kbbdm</code>
+<a href="https://i.imgur.com/F9HjCWq.png" target="_blank">service account</a></li>
+</ol>
+<p>can using curl: <code>curl https://ipaddress:6443/api -insecure --header &quot;Authorization: Bearer [token content]&quot;</code></p>
+<h4 id="default-service-account">default service account</h4>
+<p>A service account named default is automatically created.
+Each namespace has its own default service account whenever a part is created.
+The default SA and its token are automatically mounted to that part as a volume mount.</p>
+<p><code>k exec -it my-kubernetes-dashboard ls /var/run/secrets/kubernetes.io/serviceaccount</code>
+The one with the actual token is the file named token.</p>
+<p>ps. the default service account is very much restricted. It only has permission to run basic common API queries.</p>
+<p><strong>you cannot edit the service account of an existing part, must delete and recreate the pod</strong></p>
+<p>k8s automatically mounts the default service account if you haven&apos;t explicitly specified any. 
+not to mount a service account automatically by setting the <code>automountServiceAccountToken: false</code>.</p>
+<p>using RBAC</p>
+<h1 id="pod-reader-roleyaml">pod-reader-role.yaml</h1>
+<pre><code class="lang-yaml"><span class="hljs-meta">---</span>
+<span class="hljs-attr">kind:</span> Role
+<span class="hljs-attr">apiVersion:</span> rbac.authorization.k8s.io/v1
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  namespace:</span> default
+<span class="hljs-attr">  name:</span> pod-reader
+<span class="hljs-attr">rules:</span>
+<span class="hljs-attr">- apiGroups:</span>
+<span class="hljs-bullet">  -</span> <span class="hljs-string">&apos;&apos;</span>
+<span class="hljs-attr">  resources:</span>
+<span class="hljs-bullet">  -</span> pods
+<span class="hljs-attr">  verbs:</span>
+<span class="hljs-bullet">  -</span> get
+<span class="hljs-bullet">  -</span> watch
+<span class="hljs-bullet">  -</span> list
+</code></pre>
+<h1 id="dashboard-sa-role-bindingyaml">dashboard-sa-role-binding.yaml</h1>
+<pre><code class="lang-yaml"><span class="hljs-meta">---</span>
+<span class="hljs-attr">kind:</span> RoleBinding
+<span class="hljs-attr">apiVersion:</span> rbac.authorization.k8s.io/v1
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> read-pods
+<span class="hljs-attr">  namespace:</span> default
+<span class="hljs-attr">subjects:</span>
+<span class="hljs-attr">- kind:</span> ServiceAccount
+<span class="hljs-attr">  name:</span> dashboard-sa <span class="hljs-comment"># Name is case sensitive</span>
+<span class="hljs-attr">  namespace:</span> default
+<span class="hljs-attr">roleRef:</span>
+<span class="hljs-attr">  kind:</span> Role <span class="hljs-comment">#this must be Role or ClusterRole</span>
+<span class="hljs-attr">  name:</span> pod-reader <span class="hljs-comment"># this must match the name of the Role or ClusterRole you wish to bind to</span>
+<span class="hljs-attr">  apiGroup:</span> rbac.authorization.k8s.io
+</code></pre>
+<h4 id="lab-notes">Lab notes</h4>
+<p>You shouldn&apos;t have to copy and paste the token each time. The Dashboard application is programmed to read token from the secret mount location. However currently, the &apos;default&apos; service account is mounted. Update the deployment to use the newly created ServiceAccount</p>
+<p>Edit the deployment to change ServiceAccount from &apos;default&apos; to &apos;dashboard-sa&apos;</p>
+<p><strong>Use the serviceAccountName field inside the pod spec.</strong></p>
+<pre><code class="lang-yaml"><span class="hljs-attr">template:</span>
+<span class="hljs-attr">    metadata:</span>
+<span class="hljs-attr">      creationTimestamp:</span> <span class="hljs-literal">null</span>
+<span class="hljs-attr">      labels:</span>
+<span class="hljs-attr">        name:</span> web-dashboard
+<span class="hljs-attr">    spec:</span>
+<span class="hljs-attr">      serviceAccountName:</span> dashboard-sa
+<span class="hljs-attr">      containers:</span>
+<span class="hljs-attr">      - image:</span> gcr.io/kodekloud/customimage/my-kubernetes-dashboard
+<span class="hljs-attr">        imagePullPolicy:</span> Always
+<span class="hljs-attr">        name:</span> web-dashboard
+<span class="hljs-attr">        ports:</span>
+<span class="hljs-attr">        - containerPort:</span> <span class="hljs-number">8080</span>
+<span class="hljs-attr">          protocol:</span> TCP
+</code></pre>
+<h3 id="image-security">Image security</h3>
+<p>Private repository
+<code>docker login private-registry.io</code>
+<code>docker run private-registry.io/apps/internal-app</code></p>
+<p>How do you pass the credentials to the docker on times, on the worker node?
+create a secret object
+<code>k create secret docker-registry regcred --docker-server= --docker-username= --docker-password= --docker-email=</code></p>
+<h1 id="nginx-podyaml">nginx-pod.yaml</h1>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> v1
+<span class="hljs-attr">kind:</span> Pod
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> nginx-pod
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr">  containers:</span>
+<span class="hljs-attr">  - name:</span> nginx
+<span class="hljs-attr">    image:</span> private-registory.io/apps/internal-app
+<span class="hljs-attr">  imagePullSecrets:</span>
+<span class="hljs-attr">  - name:</span> regcred
+</code></pre>
+<h3 id="security-contexts">Security Contexts</h3>
+<p>configure the security settings at a container level or at a pod level
+if configured it at a pod level the settings will carry over to all the containers within the pod.
+if configure it at both the pod and the container the settings on the container will override the settings on the pod.</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> v1
+<span class="hljs-attr">kind:</span> Pod
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> web-pod
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr"> containers:</span>
+<span class="hljs-attr">   - name:</span> ubuntu
+<span class="hljs-attr">     image:</span> ubuntu
+<span class="hljs-attr">     command:</span> [<span class="hljs-string">&quot;sleep&quot;</span>, <span class="hljs-string">&quot;3600&quot;</span>]
+<span class="hljs-attr">     securityContext:</span>
+<span class="hljs-attr">       runAsUser:</span> <span class="hljs-number">1000</span>
+<span class="hljs-attr">       capabilities:</span>
+<span class="hljs-attr">          add:</span> [<span class="hljs-string">&quot;MAC_ADMIN&quot;</span>, <span class="hljs-string">&quot;NET_ADMIN&quot;</span>]
+</code></pre>
+<p><strong>Capabilities are only supported at the container level and not at the POD level</strong></p>
+<p>Lab:
+What is the user used to execute the sleep process within the ubuntu-sleeper pod?
+<code>k exec ubuntu-sleeper -- whoami</code></p>
+<h3 id="network-policies">Network Policies</h3>
+<p>When you define ingress and egress remember you&apos;re only looking at the direction in which the traffic originated.
+one of the pre-requisite for networking:
+the pods should be able to communicate with each other without having to configure any additional settings like routes.</p>
+<p>k8s is configured by default with an &quot;All Allow&quot; rule that allows traffic from any pod to any other pod or services.
+A network policy is another object in the k8s namespace. You link a network policy to one or more pods.</p>
+<p>How do you apply or link a network policy to a pod.
+Use the same technique that was used before to link ReplicasSets or Servies to Pods. Labels and Selectors.
+Label the pod and use the same labels on the pod selector field in the network policy. And then build our rule uder policy types specify whether the rule is allow ingress or egress traffic or both.</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">labels:</span>
+<span class="hljs-attr">  role:</span> db
+
+<span class="hljs-attr">podSelector:</span>
+<span class="hljs-attr">  matchLabels:</span>
+<span class="hljs-attr">    role:</span> db
+<span class="hljs-comment"># rules</span>
+<span class="hljs-attr">policyTypes:</span>
+<span class="hljs-bullet">-</span> Ingress
+<span class="hljs-attr">ingress:</span>
+<span class="hljs-attr">- from:</span>
+<span class="hljs-attr">  - podSelector:</span>
+<span class="hljs-attr">     matchLabels:</span>
+<span class="hljs-attr">       name:</span> api-pod
+<span class="hljs-attr">  ports:</span>
+<span class="hljs-attr">  - protocol:</span> TCP
+<span class="hljs-attr">    port:</span> <span class="hljs-number">3306</span>
+</code></pre>
+<p>put it together:</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> networking.k8s.io/v1
+<span class="hljs-attr">kind:</span> NetworkPolicy
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> db-policy
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr">  podSelector:</span>
+<span class="hljs-attr">   matchLabels:</span>
+<span class="hljs-attr">     role:</span> db
+<span class="hljs-attr">  policyTypes:</span>
+<span class="hljs-bullet">  -</span> Ingress
+<span class="hljs-attr">  ingress:</span>
+<span class="hljs-attr">  - from:</span>
+<span class="hljs-attr">    - podSelector:</span>
+<span class="hljs-attr">       matchLabels:</span>
+<span class="hljs-attr">         name:</span> api-pod
+<span class="hljs-attr">    ports:</span>
+<span class="hljs-attr">    - protocol:</span> TCP
+<span class="hljs-attr">      port:</span> <span class="hljs-number">3306</span>
+</code></pre>
+<p><code>k create -f policy-definition.yaml</code>
+Note:
+Solutions that support network policies:</p>
+<ul>
+<li>Kube-router</li>
+<li>Calico</li>
+<li>Romana</li>
+<li>Weave-network
+Solutions that DO NOT support network policies:</li>
+<li>Flannel<h3 id="developing-network-policies">Developing network policies</h3>
+do we need ingress or egress here or both?
+always look at this from the DB pod perspective,
+to allow incoming traffic from the API part, so that is incoming=&gt; ingress.
+<a href="https://i.imgur.com/oJJYURQ.png" target="_blank">network policy</a>
+The API pod makes database queries and the database pod returns the results.
+Do you need a separate rule for the results to go back to the api pod?
+No, once you allow incoming traffic, the response or reply to that traffic is allowed back automatically. <strong>we don&apos;t need a separate rule for that</strong>
+Using the namespace selector defining from what namespace traffic is allowed.<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> networking.k8s.io/v1
+<span class="hljs-attr">kind:</span> NetworkPolicy
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">name:</span> db-policy
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr">podSelector:</span>
+<span class="hljs-attr"> matchLabels:</span>
+<span class="hljs-attr">   role:</span> db
+<span class="hljs-attr">policyTypes:</span>
+<span class="hljs-bullet">-</span> Ingress
+<span class="hljs-bullet">-</span> Egress
+<span class="hljs-attr">ingress:</span>
+<span class="hljs-attr">- from:</span>
+<span class="hljs-attr">  - podSelector:</span>
+<span class="hljs-attr">       matchLabels:</span>
+<span class="hljs-attr">         name:</span> api-pod
+<span class="hljs-attr">    namespaceSelector:</span>
+<span class="hljs-attr">       matchLabels:</span>
+<span class="hljs-attr">         name:</span> prod
+<span class="hljs-attr">  ports:</span>
+<span class="hljs-attr">  - protocol:</span> TCP
+<span class="hljs-attr">    port:</span> <span class="hljs-number">3306</span>
+<span class="hljs-attr">egress:</span>
+<span class="hljs-attr">- to:</span>
+<span class="hljs-attr">  - ipBlock:</span>
+<span class="hljs-attr">    cidr:</span> <span class="hljs-number">192.168</span><span class="hljs-number">.5</span><span class="hljs-number">.10</span>/<span class="hljs-number">32</span>
+<span class="hljs-attr">  ports:</span>
+<span class="hljs-attr">  - portocol:</span> TCP
+<span class="hljs-attr">    port:</span> <span class="hljs-number">80</span>
+</code></pre>
+<h4 id="configure-a-network-policy-to-allow-traffic-originating-from-certain-ip-addresses">configure a network policy to allow traffic originating from certain ip addresses</h4>
+IP block: allows you to sepecify a range of IP addresses from which you could allow traffic to hit the database pod.
+<a href="https://i.imgur.com/GjeCrtC.png" target="_blank">ipBlock</a></li>
+</ul>
+<p>Two separate rules:<a href="https://i.imgur.com/Mxh2YUL.png" target="_blank">separate rules</a> </p>
+<ul>
+<li>means that traffic matching the first rule is allowed, that is from any pod matching the label api-pod in any namespace and traffic matching.</li>
+<li>the 2nd rule is allowed, which from any pod within the namespace, and that is either from the pod web, along with the backup server as we have the IP block specification as well.</li>
+</ul>
+<p><strong>lab</strong>
+Q:Create a network policy to allow traffic from the Internal application only to the payroll-service and db-service.</p>
+<p>Use the spec given on the below. You might want to enable ingress traffic to the pod to test your rules in the UI.
+<a href="https://i.imgur.com/OoVu48x.png" target="_blank">task</a>
+A: <strong>Note:</strong> We have also allowed Egress traffic to TCP and UDP port. This has been added to ensure that the internal DNS resolution works from the internal pod. Remember: The kube-dns service is exposed on port 53:</p>
+<pre><code class="lang-yaml">root@controlplane:~<span class="hljs-comment"># k get svc -n kube-system</span>
+NAME       TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+kube-dns   ClusterIP   <span class="hljs-number">10.96</span><span class="hljs-number">.0</span><span class="hljs-number">.10</span>   &lt;none&gt;        <span class="hljs-number">53</span>/UDP,<span class="hljs-number">53</span>/TCP,<span class="hljs-number">9153</span>/TCP   <span class="hljs-number">19</span>m
+root@controlplane:~<span class="hljs-comment"># cat do.yaml</span>
+<span class="hljs-attr">apiVersion:</span> networking.k8s.io/v1
+<span class="hljs-attr">kind:</span> NetworkPolicy
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> internal-policy
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr">  podSelector:</span>
+<span class="hljs-attr">   matchLabels:</span>
+<span class="hljs-attr">     name:</span> internal 
+<span class="hljs-attr">  policyTypes:</span>
+<span class="hljs-bullet">  -</span> Egress
+<span class="hljs-attr">  egress:</span>
+<span class="hljs-attr">  - to:</span>
+<span class="hljs-attr">    - podSelector:</span>
+<span class="hljs-attr">         matchLabels:</span>
+<span class="hljs-attr">           name:</span> mysql
+<span class="hljs-attr">    ports:</span>
+<span class="hljs-attr">    - protocol:</span> TCP
+<span class="hljs-attr">      port:</span> <span class="hljs-number">3306</span>
+<span class="hljs-attr">  - to:</span>
+<span class="hljs-attr">    - podSelector:</span>
+<span class="hljs-attr">         matchLabels:</span>
+<span class="hljs-attr">           name:</span> payroll
+<span class="hljs-attr">    ports:</span>
+<span class="hljs-attr">    - protocol:</span> TCP
+<span class="hljs-attr">      port:</span> <span class="hljs-number">8080</span>
+<span class="hljs-attr">  - ports:</span>
+<span class="hljs-attr">    - port:</span> <span class="hljs-number">53</span>
+<span class="hljs-attr">      protocol:</span> UDP 
+<span class="hljs-attr">    - port:</span> <span class="hljs-number">53</span>
+<span class="hljs-attr">      protocol:</span> TCP
+</code></pre>
+<p>Q: how many network policies do you see in the environment?
+A: <code>k get netpol</code> # netpo is short for network policy</p>
+<p><code>k get pods -l name=payroll</code> # l specific label</p>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="Cluster.html" class="navigation navigation-prev " aria-label="Previous page: Section 6: Cluster Maintenance">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="Storage.html" class="navigation navigation-next " aria-label="Next page: Section 8: Storage">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Section 7: Security","level":"1.6","depth":1,"next":{"title":"Section 8: Storage","level":"1.7","depth":1,"path":"Storage.md","ref":"Storage.md","articles":[]},"previous":{"title":"Section 6: Cluster Maintenance","level":"1.5","depth":1,"path":"Cluster.md","ref":"Cluster.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Security.md","mtime":"2022-02-10T11:51:43.232Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-02-10T11:58:23.730Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Section 4: Logging & Monitoring · GitBook</title>
+        <title>Section 8: Storage · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -57,10 +57,10 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Application.html" />
+    <link rel="next" href="Networking.html" />
     
     
-    <link rel="prev" href="Scheduling.html" />
+    <link rel="prev" href="Security.html" />
     
 
     </head>
@@ -115,7 +115,7 @@
             
         </li>
     
-        <li class="chapter active" data-level="1.3" data-path="Logging.html">
+        <li class="chapter " data-level="1.3" data-path="Logging.html">
             
                 <a href="Logging.html">
             
@@ -167,7 +167,7 @@
             
         </li>
     
-        <li class="chapter " data-level="1.7" data-path="Storage.html">
+        <li class="chapter active" data-level="1.7" data-path="Storage.html">
             
                 <a href="Storage.html">
             
@@ -223,7 +223,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >Section 4: Logging & Monitoring</a>
+        <a href="." >Section 8: Storage</a>
     </h1>
 </div>
 
@@ -238,42 +238,64 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="section-4-logging--monitoring">Section 4: Logging &amp; Monitoring</h1>
-<h2 id="monitor">Monitor</h2>
-<ul>
-<li>Mertics server<pre><code># for minikube
-minikube addons enable metrics-server
-# others
-git clone https://github.com/kubernetes-incubator/metrics-serve
-k create -f deploy/1.8+/
-</code></pre><h3 id="view">view</h3>
-<pre><code>k top node
-k top pod
-</code></pre></li>
-<li>Prometheus</li>
-<li>Elastic Stack</li>
-<li>Datadog</li>
-<li>dynatrace</li>
-</ul>
-<h2 id="logs---docker">Logs - Docker</h2>
-<pre><code>docker run -d kodekloud/event-simulator
-docker logs -f ecf
-</code></pre><h2 id="logs---kubernetes">Logs - Kubernetes</h2>
-<pre><code>k create -f event-simulator.yaml
-#event-simulator.yaml
-apiVersion: v1
-kind: Pod
-metadata:
- name: event-simulator-pod
-spec:
- containers:
- - name: event-simulator
-   image: kodekloud/event-simulator
- - name: image-processor
-   image: some-image-processor
-
-k logs -f event-simulator-pod event-simulator
+                                <h1 id="storage">Storage</h1>
+<h2 id="volumes">Volumes</h2>
+<p><img src="https://i.imgur.com/4VcI9Dd.png" alt="volumes &amp; mounts"></p>
+<h3 id="eg-using-aws-ebs">eg using aws EBS</h3>
+<pre><code class="lang-yaml"><span class="hljs-attr">volumes:</span>
+<span class="hljs-attr">- name:</span> data-volume
+<span class="hljs-attr">  awsElasticBlockStore:</span>
+<span class="hljs-attr">    volumeID:</span> &lt;volume-id<span class="hljs-string">&gt;
+</span><span class="hljs-attr">    fsType:</span> ex4
 </code></pre>
+<h2 id="persistent-volumes">Persistent volumes</h2>
+<p>is a cluster wide pool of storage volumes configured by an administrator to be used by users deploying applications on the cluster.
+<img src="https://i.imgur.com/UHcL5RJ.png" alt="persistent volumes"> </p>
+<h2 id="persistent-volume-claims">Persistent volume claims</h2>
+<p>An admin creates a set of persistent volumes and a user creates persistent volume clains to use the storage.</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> v1
+<span class="hljs-attr">kind:</span> PersistentVolumeClaim
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr"> name:</span> myclaim
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr"> accessModes:</span>
+<span class="hljs-bullet">   -</span> ReadWriteOnce
+<span class="hljs-attr"> resources:</span>
+<span class="hljs-attr">   requests:</span>
+<span class="hljs-attr">     storage:</span> <span class="hljs-number">500</span>Mi
+</code></pre>
+<p>create by: <code>k create -f pvc-definition.yaml</code></p>
+<p>view by: <code>k get persistentvolumeclaim</code></p>
+<p>delete PVCs by: <code>k delete persistentvolumeclaim myclaim</code>
+by default the persistent volume will remain until it is manually deleted by the admin.</p>
+<p><code>persistentVolumeReclaimPolicy: Recycle</code>: the data in the data volume will be scrubbed before making it available to other claims.</p>
+<h2 id="using-pvcs-in-pods">Using PVCs in PODs</h2>
+<pre><code class="lang-yaml"><span class="hljs-attr"> apiVersion:</span> v1
+<span class="hljs-attr"> kind:</span> Pod
+<span class="hljs-attr"> metadata:</span>
+<span class="hljs-attr">   name:</span> mypod
+<span class="hljs-attr"> spec:</span>
+<span class="hljs-attr">   containers:</span>
+<span class="hljs-attr">     - name:</span> myfrontend
+<span class="hljs-attr">       image:</span> nginx
+<span class="hljs-attr">       volumeMounts:</span>
+<span class="hljs-attr">       - mountPath:</span> <span class="hljs-string">&quot;/var/www/html&quot;</span>
+<span class="hljs-attr">         name:</span> mypd
+<span class="hljs-attr">   volumes:</span>
+<span class="hljs-attr">     - name:</span> mypd
+<span class="hljs-attr">       persistentVolumeClaim:</span>
+<span class="hljs-attr">         claimName:</span> myclaim
+</code></pre>
+<h2 id="storage-class">Storage Class</h2>
+<p>With storage class, you can define a provisional such as google storage that can automatcially provision storage on google cloud an attach that to pods when a claim is made, that&apos;s called dynamic provisioning of volumes.</p>
+<h1 id="sc-definitionyaml">sc-definition.yaml</h1>
+<pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> storage.k8s.io/v1
+<span class="hljs-attr">kind:</span> storageClass
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  name:</span> google-storage
+<span class="hljs-attr">provisioner:</span> kubernetes.io/gce-pd
+</code></pre>
+
                                 
                                 </section>
                             
@@ -300,12 +322,12 @@ k logs -f event-simulator-pod event-simulator
 
             
                 
-                <a href="Scheduling.html" class="navigation navigation-prev " aria-label="Previous page: Section 1-3: Scheduling">
+                <a href="Security.html" class="navigation navigation-prev " aria-label="Previous page: Section 7: Security">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="Application.html" class="navigation navigation-next " aria-label="Next page: Section 5: Application LIfecycle Management">
+                <a href="Networking.html" class="navigation navigation-next " aria-label="Next page: Section 9: Networking">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -316,7 +338,7 @@ k logs -f event-simulator-pod event-simulator
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Section 4: Logging & Monitoring","level":"1.3","depth":1,"next":{"title":"Section 5: Application LIfecycle Management","level":"1.4","depth":1,"path":"Application.md","ref":"Application.md","articles":[]},"previous":{"title":"Section 1-3: Scheduling","level":"1.2","depth":1,"path":"Scheduling.md","ref":"Scheduling.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Logging.md","mtime":"2022-02-10T11:51:43.232Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-02-10T11:58:23.730Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Section 8: Storage","level":"1.7","depth":1,"next":{"title":"Section 9: Networking","level":"1.8","depth":1,"path":"Networking.md","ref":"Networking.md","articles":[]},"previous":{"title":"Section 7: Security","level":"1.6","depth":1,"path":"Security.md","ref":"Security.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Storage.md","mtime":"2022-02-10T11:51:43.236Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-02-10T11:58:23.730Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

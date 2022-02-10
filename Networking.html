@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Section 4: Logging & Monitoring · GitBook</title>
+        <title>Section 9: Networking · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -57,10 +57,8 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Application.html" />
     
-    
-    <link rel="prev" href="Scheduling.html" />
+    <link rel="prev" href="Storage.html" />
     
 
     </head>
@@ -115,7 +113,7 @@
             
         </li>
     
-        <li class="chapter active" data-level="1.3" data-path="Logging.html">
+        <li class="chapter " data-level="1.3" data-path="Logging.html">
             
                 <a href="Logging.html">
             
@@ -180,7 +178,7 @@
             
         </li>
     
-        <li class="chapter " data-level="1.8" data-path="Networking.html">
+        <li class="chapter active" data-level="1.8" data-path="Networking.html">
             
                 <a href="Networking.html">
             
@@ -223,7 +221,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >Section 4: Logging & Monitoring</a>
+        <a href="." >Section 9: Networking</a>
     </h1>
 </div>
 
@@ -238,42 +236,32 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="section-4-logging--monitoring">Section 4: Logging &amp; Monitoring</h1>
-<h2 id="monitor">Monitor</h2>
+                                <h1 id="networking">Networking</h1>
+<h2 id="networking-pre-requisites">Networking pre-requisites</h2>
+<h3 id="switching-and-routing">Switching and Routing</h3>
 <ul>
-<li>Mertics server<pre><code># for minikube
-minikube addons enable metrics-server
-# others
-git clone https://github.com/kubernetes-incubator/metrics-serve
-k create -f deploy/1.8+/
-</code></pre><h3 id="view">view</h3>
-<pre><code>k top node
-k top pod
-</code></pre></li>
-<li>Prometheus</li>
-<li>Elastic Stack</li>
-<li>Datadog</li>
-<li>dynatrace</li>
-</ul>
-<h2 id="logs---docker">Logs - Docker</h2>
-<pre><code>docker run -d kodekloud/event-simulator
-docker logs -f ecf
-</code></pre><h2 id="logs---kubernetes">Logs - Kubernetes</h2>
-<pre><code>k create -f event-simulator.yaml
-#event-simulator.yaml
-apiVersion: v1
-kind: Pod
-metadata:
- name: event-simulator-pod
-spec:
- containers:
- - name: event-simulator
-   image: kodekloud/event-simulator
- - name: image-processor
-   image: some-image-processor
-
-k logs -f event-simulator-pod event-simulator
+<li>Switching</li>
+<li>Routing
+A router helps connect two networks together.</li>
+<li>Default Gateway
+If the network was a room, the gateway is a door to the outside world to other network or to the internet.A<pre><code class="lang-bash">route
+ip route add 192.168.2.0/24 via 192.168.1.1
+vim /etc/network/interfaces
+cat /proc/sys/net/ipv4/ip_forward <span class="hljs-comment"># check if IP forwarding is enable on a host</span>
+1
 </code></pre>
+<h3 id="dns">DNS</h3>
+</li>
+<li>DNS configurations on linux</li>
+<li>CoreDNS introduction<h3 id="network-namespaces">Network namespaces</h3>
+<h3 id="docker-networking">Docker Networking</h3>
+<h3 id="linux-interfaces-for-virtual-networking">Linux interfaces for virtual networking</h3>
+</li>
+<li>Bridge Network</li>
+<li>VLAN</li>
+<li>VXLAN</li>
+</ul>
+
                                 
                                 </section>
                             
@@ -300,14 +288,10 @@ k logs -f event-simulator-pod event-simulator
 
             
                 
-                <a href="Scheduling.html" class="navigation navigation-prev " aria-label="Previous page: Section 1-3: Scheduling">
+                <a href="Storage.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Section 8: Storage">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
-                
-                <a href="Application.html" class="navigation navigation-next " aria-label="Next page: Section 5: Application LIfecycle Management">
-                    <i class="fa fa-angle-right"></i>
-                </a>
                 
             
         
@@ -316,7 +300,7 @@ k logs -f event-simulator-pod event-simulator
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Section 4: Logging & Monitoring","level":"1.3","depth":1,"next":{"title":"Section 5: Application LIfecycle Management","level":"1.4","depth":1,"path":"Application.md","ref":"Application.md","articles":[]},"previous":{"title":"Section 1-3: Scheduling","level":"1.2","depth":1,"path":"Scheduling.md","ref":"Scheduling.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Logging.md","mtime":"2022-02-10T11:51:43.232Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-02-10T11:58:23.730Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Section 9: Networking","level":"1.8","depth":1,"previous":{"title":"Section 8: Storage","level":"1.7","depth":1,"path":"Storage.md","ref":"Storage.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Networking.md","mtime":"2022-02-10T11:51:43.232Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-02-10T11:58:23.730Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
