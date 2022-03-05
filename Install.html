@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Introduction · GitBook</title>
+        <title>Section 10: Design and Install a Kubernetes Cluster · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -57,8 +57,10 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Scheduling.html" />
+    <link rel="next" href="Kubeadm.html" />
     
+    
+    <link rel="prev" href="Networking.html" />
     
 
     </head>
@@ -87,7 +89,7 @@
         
         
     
-        <li class="chapter active" data-level="1.1" data-path="./">
+        <li class="chapter " data-level="1.1" data-path="./">
             
                 <a href="./">
             
@@ -191,7 +193,7 @@
             
         </li>
     
-        <li class="chapter " data-level="1.9" data-path="Install.html">
+        <li class="chapter active" data-level="1.9" data-path="Install.html">
             
                 <a href="Install.html">
             
@@ -260,7 +262,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >Introduction</a>
+        <a href="." >Section 10: Design and Install a Kubernetes Cluster</a>
     </h1>
 </div>
 
@@ -275,7 +277,133 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="introduction">Introduction</h1>
+                                <h1 id="design-and-install-a-kubernetes-cluster">Design and Install a Kubernetes Cluster</h1>
+<h2 id="ask">Ask</h2>
+<ul>
+<li><p>Purpose</p>
+<ul>
+<li>Education<ul>
+<li>Minikube</li>
+<li>Single node cluster with kubeadm/GCP/AWS</li>
+</ul>
+</li>
+<li>Development &amp; Testing<ul>
+<li>Multi-node cluster with a Single Master and Multiple workers</li>
+<li>Setup using kubeadmin tool or quick provision on GCP or AWS or AKS</li>
+</ul>
+</li>
+<li>Hosting Production Applications<ul>
+<li>High availability multi node cluster with multiple master nodes</li>
+<li>Kubeadm or GCP or Kops on AWS or other supported platforms</li>
+<li>Upto 5000 nodes</li>
+<li>Upto 150,000 PODs in the cluster</li>
+<li>Upto 300,000 Total Containers</li>
+<li>Upto 100 PODs per Node
+|   nodes | gcp            |                | aws        |                |
+|---------+----------------+----------------+------------+----------------|
+|     1-5 | n1-standard-1  | 1 vcpu 3.75 gb | m3.medium  | 1 vcpu 3.75 gb |
+|    6-10 | n1-standard-2  | 2 vcpu 7.5 gb  | m3.large   | 2 vcpu 7.5 gb  |
+|  11-100 | n1-standard-4  | 4 vcpu 15 gb   | m3.xlarge  | 4 vcpu 15 gb   |
+| 101-250 | n1-standard-8  | 8 vcpu 30 gb   | m3.2xlarge | 8 vcpu 30 gb   |
+| 251-500 | n1-standard-16 | 16 vcpu 60 gb  | c4.4xlarge | 16 vcpu 30 gb  |
+|   &gt; 500 | N1-standard-32 | 32 vCPU 120 GB | C4.8xlarge | 36 vCPU 60 GB  |</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Cloud or OnPrem?</p>
+<ul>
+<li>Use Kubeadm for op-prem</li>
+<li>GKE for GCP</li>
+<li>Kops for AWS</li>
+<li>Azure Kubernetes Service(AKS) for Azure</li>
+</ul>
+</li>
+<li>Storage<ul>
+<li>High Performance &#x2013; SSD Backed Storage</li>
+<li>Multiple Concurrent connections &#x2013; Network based storage</li>
+<li>Persistent shared volumes for shared access across multiple PODs</li>
+<li>Label nodes with specific disk types</li>
+<li>Use Node Selectors to assign applications to nodes with specific disk types</li>
+</ul>
+</li>
+<li><p>Nodes</p>
+<ul>
+<li>Virtual or Physical Machines</li>
+<li>Minimum of 4 Node Cluster (Size based on workload)</li>
+<li>Master vs Worker Nodes</li>
+<li><p>Linux X86_64 Architectur</p>
+</li>
+<li><p>Master nodes can host workloads</p>
+</li>
+<li>Best practice is to not host workloads on Master nodes<h2 id="choosing-k8s-infrastructure">Choosing k8s infrastructure</h2>
+</li>
+</ul>
+</li>
+<li>Minikube
+Deploys VMs
+Single Node Cluster</li>
+<li>Kubeadm
+Requires VMs to be ready
+Single/multi node cluster<h3 id="turnkey-solutions">Turnkey solutions</h3>
+</li>
+<li>You provision VMs</li>
+<li>You configure VMs</li>
+<li>You use scripts to deploy cluster</li>
+<li>You maintain VMs yourself</li>
+<li>Eg: k8s on AWS using KOPS</li>
+</ul>
+<p>OpenShift, Cloud Foundry container runtime, VMware Cloud PKS, Vagrant</p>
+<h3 id="hosted-solutions-managed-solutions">Hosted solutions (managed solutions)</h3>
+<ul>
+<li>Kubernetes-As-A-Service</li>
+<li>Provider provisions VMs</li>
+<li>Provider install K8s</li>
+<li>Provider maintains VMs</li>
+<li>Eg: Google Container Engine (GKE)</li>
+</ul>
+<p>GKE, OpenShift Online, AKS, EKS</p>
+<h2 id="configure-high-availability">Configure high availability</h2>
+<h2 id="etcd-in-ha">ETCD in HA</h2>
+<p>ETCD is a distributed reliable key-value store that is Simple, Secure &amp; Fast.
+Read is easy.
+One of the nodes process the write.
+LEader election-RAFT
+Quorum = N/2+1
+Quorum of 3 = 3/2+1=2.5 ~= 2
+<img src="https://i.imgur.com/xSU8Lvp.png" alt="Quorum"></p>
+<h3 id="etcdctl">ETCDCTL</h3>
+<pre><code class="lang-yaml">export ETCDCTL_API=<span class="hljs-number">3</span>
+etcdctl put name joh
+etcdctl get name
+etcdctl get / --prefix --keys-only
+</code></pre>
+<h3 id="number-of-nodes">Number of Nodes</h3>
+<p><img src="https://i.imgur.com/R9PUUAW.png" alt="NumOfETCDnode">
+3 is a good start but if you prefer a higher level of full tolerance, then 5 is better,
+anything beyond that is just unnecessary.
+<img src="https://i.imgur.com/SfhXDcQ.png" alt="Our design"></p>
+<ul>
+<li>Workloads<ul>
+<li>How many?</li>
+<li>What kind?<ul>
+<li>Web</li>
+<li>Big Data/Analytics</li>
+</ul>
+</li>
+<li>Application resource requirements<ul>
+<li>CPU intensive</li>
+<li>Memory intensive</li>
+</ul>
+</li>
+<li>Traffic<ul>
+<li>Heavy traffic</li>
+<li>Burst traffic</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 
                                 
                                 </section>
@@ -303,8 +431,12 @@
 
             
                 
+                <a href="Networking.html" class="navigation navigation-prev " aria-label="Previous page: Section 9: Networking">
+                    <i class="fa fa-angle-left"></i>
+                </a>
                 
-                <a href="Scheduling.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Section 1-3: Scheduling">
+                
+                <a href="Kubeadm.html" class="navigation navigation-next " aria-label="Next page: Section 11: Install "Kubernetes the kubeadm way"">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -315,7 +447,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"next":{"title":"Section 1-3: Scheduling","level":"1.2","depth":1,"path":"Scheduling.md","ref":"Scheduling.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2022-02-10T11:58:53.810Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-03-05T11:53:35.199Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Section 10: Design and Install a Kubernetes Cluster","level":"1.9","depth":1,"next":{"title":"Section 11: Install \"Kubernetes the kubeadm way\"","level":"1.10","depth":1,"path":"Kubeadm.md","ref":"Kubeadm.md","articles":[]},"previous":{"title":"Section 9: Networking","level":"1.8","depth":1,"path":"Networking.md","ref":"Networking.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Install.md","mtime":"2022-02-26T10:26:13.512Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-03-05T11:53:35.199Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

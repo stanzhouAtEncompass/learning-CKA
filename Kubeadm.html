@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Introduction · GitBook</title>
+        <title>Section 11: Install "Kubernetes the kubeadm way" · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -57,8 +57,10 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Scheduling.html" />
+    <link rel="next" href="Troubleshooting.md" />
     
+    
+    <link rel="prev" href="Install.html" />
     
 
     </head>
@@ -87,7 +89,7 @@
         
         
     
-        <li class="chapter active" data-level="1.1" data-path="./">
+        <li class="chapter " data-level="1.1" data-path="./">
             
                 <a href="./">
             
@@ -204,7 +206,7 @@
             
         </li>
     
-        <li class="chapter " data-level="1.10" data-path="Kubeadm.html">
+        <li class="chapter active" data-level="1.10" data-path="Kubeadm.html">
             
                 <a href="Kubeadm.html">
             
@@ -260,7 +262,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >Introduction</a>
+        <a href="." >Section 11: Install "Kubernetes the kubeadm way"</a>
     </h1>
 </div>
 
@@ -275,7 +277,66 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="introduction">Introduction</h1>
+                                <h1 id="install-kubernetes-the-kubeadm-way">Install Kubernetes the kubeadm way</h1>
+<h2 id="introduction-to-deployment-with-kubeadm">Introduction to deployment with kubeadm</h2>
+<h3 id="steps">Steps</h3>
+<ol>
+<li>Have multiple systems or vm provisioned for configuring a cluster.
+Once the systems are created, designate one node as master and other as worker nodes.</li>
+<li>Install a container runtime on the hosts. We using Docker. Install docker on all the nodes.</li>
+<li>Install kubeadm tool on all the nodes, the kubeadm tool helps us bootscrap the k8s solution by installing and confgiguring all the required
+components in the right nodes in the right order.</li>
+<li>Initialize the master server. During this process all the required components are installed and confgigured on the master server.
+Once the master is initialized and before joining the worker nodes to the master, you must ensure that the network prerequisites are met and
+normal network connectivity between the systems is not sufficient for this.
+K8s requires a special networking solution between the master and worker nodes, which is called as the pod network.</li>
+<li>join the worker node to the master node.<h2 id="deploy-with-kubeadm-provision-vm-with-vagrant">Deploy with kubeadm-Provision VM with Vagrant</h2>
+<a href="https://github.com/kodekloudhub/certified-kubernetes-administrator-course.git" title="repo" target="_blank">repo</a>
+vagrant ssh kubemaster<h2 id="demo-deployment-with-kubeadm">Demo-deployment with kubeadm</h2>
+<a href="https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/" target="_blank">install kubeadm</a><pre><code class="lang-bash">lsmod | grep br_netfilter
+modprobe br_netfilter
+</code></pre>
+run on all the nodes<h3 id="letting-iptables-see-bridged-traffic">letting iptables see bridged traffic</h3>
+<pre><code class="lang-bash">cat &lt;&lt;EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sudo sysctl --system
+</code></pre>
+</li>
+</ol>
+<h3 id="install-docker-engine-on-ubuntu">Install Docker Engine on ubuntu:</h3>
+<pre><code class="lang-bash">apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+<span class="hljs-built_in">echo</span> \
+  <span class="hljs-string">&quot;deb [arch=<span class="hljs-variable">$(dpkg --print-architecture)</span> signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  <span class="hljs-variable">$(lsb_release -cs)</span> stable&quot;</span> | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+apt-get update
+apt-get install docker-ce docker-ce-cli containerd.io
+systemctl <span class="hljs-built_in">enable</span> docker.service
+systemctl <span class="hljs-built_in">enable</span> containerd.service
+systemctl edit docker.service
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://127.0.0.1:2375
+systemctl daemon-reload
+systemctl restart docker.service
+systemctl status docker.service
+</code></pre>
+<h3 id="installing-kubeadm-kubelet-and-kubectl">Installing kubeadm, kubelet and kubectl</h3>
+<ul>
+<li>kubeadm: the command to bootstrap the cluster.</li>
+<li>kubelet: the component that runs on all of the machines in your cluster and does things like starting pods and containers.</li>
+<li>kubectl: the command line util to talk to your cluster.</li>
+</ul>
+<p><code>kubeadm init --pod-network-cidr 10.244.0.0/16 --apiserver-advertise-address=192.168.56.2</code>
+<code>kubeadm join 10.26.82.9:6443 --token 5oze05.sgcn4a5j8or1ho3m \
+        --discovery-token-ca-cert-hash sha256:cd674108921cedba78804f3d5632503f098a53ecc36b4c1217bcd9cac8d308da</code>
+Check kubeadm version: <code>kubeadm version -o short</code></p>
 
                                 
                                 </section>
@@ -303,8 +364,12 @@
 
             
                 
+                <a href="Install.html" class="navigation navigation-prev " aria-label="Previous page: Section 10: Design and Install a Kubernetes Cluster">
+                    <i class="fa fa-angle-left"></i>
+                </a>
                 
-                <a href="Scheduling.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Section 1-3: Scheduling">
+                
+                <a href="Troubleshooting.md" class="navigation navigation-next " aria-label="Next page: Section 12: Troubleshooting">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -315,7 +380,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"next":{"title":"Section 1-3: Scheduling","level":"1.2","depth":1,"path":"Scheduling.md","ref":"Scheduling.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2022-02-10T11:58:53.810Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-03-05T11:53:35.199Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Section 11: Install \"Kubernetes the kubeadm way\"","level":"1.10","depth":1,"next":{"title":"Section 12: Troubleshooting","level":"1.11","depth":1,"path":"Troubleshooting.md","ref":"Troubleshooting.md","articles":[]},"previous":{"title":"Section 10: Design and Install a Kubernetes Cluster","level":"1.9","depth":1,"path":"Install.md","ref":"Install.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Kubeadm.md","mtime":"2022-03-03T12:30:57.961Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-03-05T11:53:35.199Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
