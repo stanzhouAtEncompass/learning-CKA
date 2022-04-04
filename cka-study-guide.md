@@ -185,3 +185,36 @@ The logs may come in handy as well. You will only be able to check the logs for 
 $ kubectl describe pod kube-proxy-csrww -n kube-system | grep Node:
 Node:                 worker-1/10.0.2.15
 $ kubectl logs kube-proxy-csrww -n kube-system
+
+# Mock Exam -1
+1. Create a static pod named static-busybox on the master node that uses the busybox image and the command `sleep 1000`.
+``` shell
+k run static-busybox --image=busybox --command sleep 1000 --dry-run=client -o yaml > static-busybox.yaml
+ls -l /etc/kubernetes/manifests/
+# check the config
+cd /var/lib/kubelet/
+grep -i staticPod config.yaml
+# move the file
+mv static-busybox.yaml /etc/kubernetes/manifests/
+```
+2. Expose the hr-web-app as service hr-web-app-service application on port 30082 on the nodes on the cluster.
+The web application listens on port 8080
+- Name: hr-web-app-service
+- Type: NodePort
+- Endpoints:2
+- Port: 8080
+- NodePort: 30082
+`k get deployments.app`
+`k expose deployment hr-we-app --name hr-web-app-service --type=NodePort --port 8080 --target-port 8080 --dry-run=client -o yaml > svc.yaml`
+Manually update nodePort: 30082 in the file svc.yaml 
+`k apply -f svc.yaml`
+`k describe svc hr-web-app-service` Check the Endpoints
+
+3. Create a service messaging-service to expose the messaging application within the cluster on port 6379.
+
+Use imperative commands.
+- Service: messaging-service
+- Port: 6379
+- Type: ClusterIp
+- Use the right labels 
+`k expose pod messaging --name messaging-service --port 6379 --target-port 6379`
